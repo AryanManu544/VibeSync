@@ -1,0 +1,43 @@
+/* Navbar.css */
+
+.navbar {
+    display: flex;
+    align-items: center;
+    background-color: #333;  /* Change as needed */
+    padding: 0 20px;
+    height: 60px;
+    color: #fff;
+  }
+  
+  .navbar-left {
+    display: flex;
+    align-items: center;
+  }
+  
+  .navbar-brand {
+    display: flex;
+    align-items: center;
+    margin-right: 30px;  /* Adjust spacing between the brand and menu */
+  }
+  
+  .navbar-brand img {
+    height: 40px;  /* Adjust as needed */
+    margin-right: 10px;
+  }
+  
+  .navbar-menu {
+    display: flex;
+    align-items: center;
+  }
+  
+  .navbar-menu a {
+    color: #fff;
+    text-decoration: none;
+    margin-right: 30px;  /* Adjust spacing between links */
+    font-size: 16px;
+    transition: color 0.3s ease;
+  }
+  
+  .navbar-menu a:hover {
+    color: #ddd;
+  }  

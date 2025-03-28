@@ -35,8 +35,10 @@ const UserSchema = new mongoose.Schema({
     }],
     createdAt: {
       type: Date,
-      default: Date.now
-    }
+      default: Date.now,
+    },
+    resetToken: String,
+    resetTokenExpiration: Date,
   }, { timestamps: true });
 
-export default UserSchema
+module.exports = mongoose.model('User', UserSchema);
