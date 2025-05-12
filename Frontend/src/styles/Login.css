@@ -16,7 +16,6 @@ body {
   align-items: center;
 }
 
-/* Login container styled to match second image */
 .login-container {
   width: 400px;
   padding: 2rem;
@@ -26,7 +25,6 @@ body {
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
 }
 
-/* Headings */
 h2 {
   text-align: center;
   margin-bottom: 2rem;
@@ -35,7 +33,6 @@ h2 {
   color: #d1cce7;
 }
 
-/* Form structure */
 form {
   display: flex;
   flex-direction: column;
@@ -48,7 +45,6 @@ label {
   margin-bottom: 0.3rem;
 }
 
-/* Inputs – make full‐width */
 .login-container input {
   width: 100%;
   box-sizing: border-box;
@@ -64,7 +60,6 @@ label {
   color: #aaa;
 }
 
-/* Remember / Forgot row */
 .remember-forgot {
   display: flex;
   justify-content: space-between;
@@ -93,7 +88,6 @@ label {
   text-decoration: underline;
 }
 
-/* Submit button – full‐width */
 .login-container button {
   width: 100%;
   margin-top: 1rem;

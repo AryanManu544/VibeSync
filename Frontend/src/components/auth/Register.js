@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import "../../styles/Login.css";
+import "../../styles/Register.css";
 
 const Register = ({ mode, showAlert }) => {
   const [credentials, setCredentials] = useState({
@@ -63,7 +63,8 @@ const Register = ({ mode, showAlert }) => {
   };
 
   return (
-    <div className={`login-container ${mode === "dark" ? "dark" : "light"}`}>
+    <div className="background">
+    <div className={`register-container ${mode === "dark" ? "dark" : "light"}`}>
       <h2>Sign Up</h2>
       <form onSubmit={handleSubmit}>
         <div>
@@ -72,6 +73,7 @@ const Register = ({ mode, showAlert }) => {
             type="text"
             name="name"
             id="name"
+            placeholder="Enter your name"
             value={credentials.name}
             onChange={onChange}
           />
@@ -82,6 +84,7 @@ const Register = ({ mode, showAlert }) => {
             type="email"
             name="email"
             id="email"
+            placeholder="Enter your email"
             value={credentials.email}
             onChange={onChange}
           />
@@ -92,6 +95,7 @@ const Register = ({ mode, showAlert }) => {
             type="password"
             name="password"
             id="password"
+            placeholder="Enter your password"
             value={credentials.password}
             onChange={onChange}
           />
@@ -102,6 +106,7 @@ const Register = ({ mode, showAlert }) => {
             type="password"
             name="cpassword"
             id="cpassword"
+            placeholder="Enter your password once more"
             value={credentials.cpassword}
             onChange={onChange}
           />
@@ -114,6 +119,7 @@ const Register = ({ mode, showAlert }) => {
         Already have an account? <Link to="/login">Login</Link>
       </div>
     </div>
+  </div>
   );
 };
 
