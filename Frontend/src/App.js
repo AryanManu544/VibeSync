@@ -5,6 +5,7 @@ import HomePage from './components/Home';
 import LoginPage from './components/auth/Login';
 import RegisterPage from './components/auth/Register';
 import './styles/Navbar.css';
+import './styles/Alert.css';
 
 const App = () => {
   const [alert, setAlert] = useState({ msg: '', type: '' });
@@ -22,17 +23,11 @@ const App = () => {
       <Navbar />
 
       {alert.msg && (
-        <div className={`alert alert-${alert.type} alert-dismissible fade show`} role="alert">
+        <div className={`alert alert-${alert.type}`}>
           {alert.msg}
-          <button
-            type="button"
-            className="btn-close"
-            data-bs-dismiss="alert"
-            aria-label="Close"
-            onClick={() => setAlert({ msg: '', type: '' })}
-          ></button>
         </div>
       )}
+
 
       <Routes>
         <Route path="/" element={<HomePage showAlert={showAlert} />} />
