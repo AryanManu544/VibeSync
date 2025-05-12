@@ -1,121 +1,134 @@
 body {
-    margin: 0;
-    padding: 0;
-    font-family: Arial, sans-serif;
-  }
-  
-  /* Container (Card) */
-  .login-container {
-    width: 40vw !important;
-    min-width: 300px;
-    max-width: 400px;        
-    margin: 4rem auto;       
-    padding: 1rem;
-    border-radius: 8px;
-  }
-  
-  /* Light & Dark Themes */
-  .light {
-    background-color: rgba(255, 255, 255, 0.8);
-    color: black;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
-  }
-  
-  .dark {
-    background-color: rgba(34, 34, 34, 0.8);
-    color: white;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.8);
-  }
-  
-  /* Headings */
-  h2 {
-    text-align: center;
-    margin-bottom: 1.5rem;
-  }
-  
-  /* Form Layout */
-  form {
-    display: flex;
-    flex-direction: column;
-  }
-  
-  /* Each form group (label + input) */
-  form > div {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 1rem;
-  }
-  
-  label {
-    margin-bottom: 0.4rem;
-    font-weight: bold;
-    font-size: 0.95rem;
-  }
-  
-  /* Inputs */
-  input {
-    padding: 0.6rem;
-    font-size: 1rem;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-  }
-  
-  .dark input {
-    background-color: #222;
-    color: #fff;
-    border-color: #444;
-  }
-  
-  button {
-    display: inline-block;
-    width: 100%;
-    padding: 0.65rem;
-    border: 1px solid #007bff;
-    background-color: transparent;
-    color: #007bff;
-    font-size: 1rem;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    text-align: center;
-  }
-  
-  button:hover {
-    background-color: #007bff;
-    color: #fff;
-  }
-  
-  /* Remember Me & Forgot Password row */
-  .remember-forgot {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 0.5rem;
-    font-size: 0.9rem;
-  }
-  
-  .remember-forgot a {
-    text-decoration: none;
-    color: #007bff;
-  }
-  
-  .remember-forgot a:hover {
-    text-decoration: underline;
-  }
-  
-  /* Bottom text link (Sign up / Login) */
-  .text-center {
-    text-align: center;
-    margin-top: 1rem;
-    font-size: 0.9rem;
-  }
-  
-  .text-center a {
-    color: #007bff;
-    text-decoration: none;
-  }
-  
-  .text-center a:hover {
-    text-decoration: underline;
-  }
-  
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.background {
+  width: 100vw;
+  height: 100vh;
+  background-image: url('../assets/loginbg.png');
+  background-size: 100% 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Login container styled to match second image */
+.login-container {
+  width: 400px;
+  padding: 2rem;
+  border-radius: 20px;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: #d1cce7;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+}
+
+/* Headings */
+h2 {
+  text-align: center;
+  margin-bottom: 2rem;
+  font-weight: 600;
+  font-size: 1.8rem;
+  color: #d1cce7;
+}
+
+/* Form structure */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+label {
+  font-size: 1rem;
+  font-weight: 500;
+  margin-bottom: 0.3rem;
+}
+
+/* Inputs – make full‐width */
+.login-container input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.75rem;
+  font-size: 1rem;
+  border-radius: 8px;
+  border: none;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.login-container input::placeholder {
+  color: #aaa;
+}
+
+/* Remember / Forgot row */
+.remember-forgot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.remember-forgot > div {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.remember-forgot input[type="checkbox"] {
+  margin-right: 0.4rem;
+  transform: scale(1.1);
+}
+
+.remember-forgot a {
+  color: #b8aaff;
+  text-decoration: none;
+}
+
+.remember-forgot a:hover {
+  text-decoration: underline;
+}
+
+/* Submit button – full‐width */
+.login-container button {
+  width: 100%;
+  margin-top: 1rem;
+  padding: 0.9rem;
+  border: none;
+  background-color: #5865F2;
+  color: white;
+  font-size: 1rem;
+  font-weight: bold;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.login-container button:hover {
+  background-color: #4752c4;
+}
+
+/* Signup text */
+.text-center {
+  text-align: center;
+  margin-top: 1rem;
+  font-size: 0.95rem;
+}
+
+.text-center a {
+  color: #b8aaff;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.text-center a:hover {
+  text-decoration: underline;
+}
+.login-container input {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}

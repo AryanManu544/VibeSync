@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import "../../styles/Login.css";
 
-const Login = ({ mode, showAlert }) => {
+const Login = ({ showAlert }) => {
   const [credentials, setCredentials] = useState({
     email: "",
     password: "",
@@ -11,35 +11,19 @@ const Login = ({ mode, showAlert }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Apply dark/light theme to <body> (for future use if needed)
-    document.body.setAttribute("data-theme", mode);
-
-    // Set the background image
-    const backgroundImage =
-      mode === "dark"
-        ? "/assets/darkmode.jpg"
-        : "/assets/lightmode.jpg";
-
-    document.body.style.backgroundImage = `url(${backgroundImage})`;
-    document.body.style.backgroundSize = "cover";
-    document.body.style.backgroundPosition = "center";
-    document.body.style.backgroundRepeat = "no-repeat";
-    document.body.style.height = "100vh";
-    document.body.style.margin = "0";
-
-    // Load saved credentials (if 'Remember Me' was checked)
-    const savedCreds = localStorage.getItem("loginCreds");
-    if (savedCreds) {
-      setCredentials(JSON.parse(savedCreds));
+    // If previously opted to remember, load from localStorage
+    const saved = localStorage.getItem("loginCreds");
+    if (saved) {
+      setCredentials(JSON.parse(saved));
     }
-  }, [mode]);
+  }, []);
 
   const onChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setCredentials({
-      ...credentials,
-      [name]: type === "checkbox" ? checked : value,
-    });
+    setCredentials(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -50,21 +34,20 @@ const Login = ({ mode, showAlert }) => {
       const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(credentials),
+        body: JSON.stringify({
+          email: credentials.email,
+          password: credentials.password,
+        }),
       });
 
       const json = await response.json();
       if (json.authtoken) {
-        // If login is successful
+        // Save token
+        sessionStorage.setItem("token", json.authtoken);
+        // Handle remember me
         if (credentials.remember) {
-          localStorage.setItem("token", json.authtoken);
-          localStorage.setItem("loginCreds", JSON.stringify({
-            email: credentials.email,
-            password: credentials.password,
-            remember: credentials.remember,
-          }));
+          localStorage.setItem("loginCreds", JSON.stringify(credentials));
         } else {
-          sessionStorage.setItem("token", json.authtoken);
           localStorage.removeItem("loginCreds");
         }
         showAlert("Logged in successfully", "success");
@@ -79,49 +62,54 @@ const Login = ({ mode, showAlert }) => {
   };
 
   return (
-    <div className={`login-container ${mode === "dark" ? "dark" : "light"}`}>
-      <h2>Login</h2>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label htmlFor="email">Email address</label>
-          <input
-            type="email"
-            name="email"
-            id="email"
-            value={credentials.email}
-            onChange={onChange}
-          />
-        </div>
-        <div>
-          <label htmlFor="password">Password</label>
-          <input
-            type="password"
-            name="password"
-            id="password"
-            value={credentials.password}
-            onChange={onChange}
-          />
-        </div>
-
-        <button type="submit">Sign In</button>
-
-        <div className="remember-forgot">
+    <div className="background">
+      <div className="login-container">
+        <h2>Login</h2>
+        <form onSubmit={handleSubmit}>
           <div>
+            <label htmlFor="email">Email</label>
             <input
-              type="checkbox"
-              name="remember"
-              id="remember"
-              checked={credentials.remember}
+              type="email"
+              name="email"
+              id="email"
+              placeholder="Enter your email"
+              value={credentials.email}
               onChange={onChange}
+              required
             />
-            <label htmlFor="remember"> Remember Me</label>
           </div>
-          <Link to="/forgotpassword">Forgot Password?</Link>
-        </div>
-      </form>
+          <div>
+            <label htmlFor="password">Password</label>
+            <input
+              type="password"
+              name="password"
+              id="password"
+              placeholder="Enter your password"
+              value={credentials.password}
+              onChange={onChange}
+              required
+            />
+          </div>
 
-      <div className="text-center">
-        Don't have an account? <Link to="/signup">Sign up</Link>
+          <div className="remember-forgot">
+            <div>
+              <input
+                type="checkbox"
+                name="remember"
+                id="remember"
+                checked={credentials.remember}
+                onChange={onChange}
+              />{' '}
+              <label htmlFor="remember">Remember Me</label>
+            </div>
+            <Link to="/forgotpassword">Forgot Password?</Link>
+          </div>
+
+          <button type="submit">Log In</button>
+        </form>
+        <div className="text-center">
+          Need an account? <Link to="/register">Register</Link>
+        </div>
       </div>
     </div>
   );
