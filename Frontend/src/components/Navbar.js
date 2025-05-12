@@ -7,7 +7,7 @@ const Navbar = () => {
       <div className="navbar-left">
         <div className="navbar-brand">
           <img src="/logo.png" alt="Logo" />
-          <span className="site-name">My Website</span>
+          <span className="site-name">VibeSync</span>
         </div>
         <div className="navbar-menu">
           <a href="/discover">Discover</a>

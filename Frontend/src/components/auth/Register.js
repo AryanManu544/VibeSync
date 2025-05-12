@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import "../../styles/Login.css";
 
-const Register = ({ mode, showalert }) => {
+const Register = ({ mode, showAlert }) => {
   const [credentials, setCredentials] = useState({
     name: "",
     email: "",
@@ -34,7 +34,7 @@ const Register = ({ mode, showalert }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (credentials.password !== credentials.cpassword) {
-      showalert("Passwords do not match", "danger");
+      showAlert("Passwords do not match", "danger");
       return;
     }
 
@@ -51,14 +51,14 @@ const Register = ({ mode, showalert }) => {
 
       if (json.authtoken) {
         localStorage.setItem("token", json.authtoken);
-        showalert("Account created successfully", "success");
+        showAlert("Account created successfully", "success");
         navigate("/");
       } else {
-        showalert("Invalid credentials", "danger");
+        showAlert("Invalid credentials", "danger");
       }
     } catch (error) {
       console.error("Error:", error);
-      showalert("An error occurred", "danger");
+      showAlert("An error occurred", "danger");
     }
   };
 

@@ -17,7 +17,7 @@
   .navbar-brand {
     display: flex;
     align-items: center;
-    margin-right: 30px;  /* Adjust spacing between the brand and menu */
+    margin-right: 300px;  /* Adjust spacing between the brand and menu */
   }
   
   .navbar-brand img {
