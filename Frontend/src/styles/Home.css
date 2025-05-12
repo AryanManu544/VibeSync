@@ -1,0 +1,119 @@
+/* reset */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow-x: hidden;
+}
+
+/* full-screen background */
+.home-page {
+  width: 100vw;
+  height: 100vh;
+  background-image: url('../assets/Homeback.png');
+  background-size: 100% 100%;      /* cover to fill horizontally and vertically */
+  background-position: center;
+  background-repeat: no-repeat;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Navbar */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  padding: 1rem 2rem;
+  align-items: center;
+}
+.navbar-logo {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: white;
+  margin-right: 2rem;
+}
+.nav-link {
+  color: white;
+  margin-right: 1.5rem;
+  text-decoration: none;
+  font-weight: 500;
+}
+.nav-link:hover {
+  text-decoration: underline;
+}
+.navbar-right {
+  display:flex;
+  gap:3rem;
+}
+.btn-register {
+  background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.4);
+  border-radius: 4px;
+  color: white;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+
+.btn-login {
+  background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.4);
+  border-radius: 4px;
+  color: white;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+.btn-register:hover {
+  background: rgba(255,255,255,0.3);
+}
+.btn-login:hover {
+  background: rgba(255,255,255,0.3);
+}
+
+/* Hero area */
+.hero-content {
+  flex: 1;                          /* take remaining space */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;         /* align left */
+  padding: 0 10%;
+}
+.hero-title {
+  font-size: 3rem;
+  color: white;
+  margin: 0 0 1rem 0;
+}
+.hero-subtitle {
+  font-size: 1.25rem;
+  color: white;
+  line-height: 1.5;
+  max-width: 40rem;
+  margin-bottom: 2rem;
+}
+
+/* Hero buttons row */
+.hero-buttons {
+  display: flex;
+  gap: 1rem;
+}
+.btn {
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  border: none;
+}
+.btn-primary {
+  background-color: #5865F2;   /* Discord-blue style */
+  color: white;
+}
+.btn-primary:hover {
+  background-color: #4752c4;
+}
+.btn-secondary {
+  background-color: white;
+  color: #23272A;
+}
+.btn-secondary:hover {
+  background-color: #f2f3f5;
+}

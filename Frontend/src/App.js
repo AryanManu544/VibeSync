@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Navbar from './components/Navbar';
 import HomePage from './components/Home';
 import LoginPage from './components/auth/Login';
 import RegisterPage from './components/auth/Register';
-import './styles/Navbar.css';
 import './styles/Alert.css';
 
 const App = () => {
@@ -20,7 +18,6 @@ const App = () => {
 
   return (
     <Router>
-      <Navbar />
 
       {alert.msg && (
         <div className={`alert alert-${alert.type}`}>
