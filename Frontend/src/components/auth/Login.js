@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import "../../styles/Login.css";
 
-const Login = ({ mode, showalert }) => {
+const Login = ({ mode, showAlert }) => {
   const [credentials, setCredentials] = useState({
     email: "",
     password: "",
@@ -67,14 +67,14 @@ const Login = ({ mode, showalert }) => {
           sessionStorage.setItem("token", json.authtoken);
           localStorage.removeItem("loginCreds");
         }
-        showalert("Logged in successfully", "success");
+        showAlert("Logged in successfully", "success");
         navigate("/");
       } else {
-        showalert("Invalid credentials", "danger");
+        showAlert("Invalid credentials", "danger");
       }
     } catch (error) {
       console.error("Error:", error);
-      showalert("An error occurred", "danger");
+      showAlert("An error occurred", "danger");
     }
   };
 

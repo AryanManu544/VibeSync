@@ -22,4 +22,4 @@ const ChannelSchema = new mongoose.Schema({
     }]
   }, { timestamps: true });
 
-export default ChannelSchema
+module.exports = mongoose.model('Channel', ChannelSchema);
