@@ -14,7 +14,6 @@ const MessageInput = ({ channelId }) => {
     
     if (!message.trim() || !channelId) return;
 
-    // Send message through socket
     socket.emit('send_message', {
       channelId,
       content: message.trim()
@@ -36,7 +35,6 @@ const MessageInput = ({ channelId }) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    // For demonstration purposes, we'll just show the filename
     // In a real app, you would upload this to your server/cloud storage
     setMessage(prev => prev + `[Uploading: ${files[0].name}]`);
     
