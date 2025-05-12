@@ -6,7 +6,6 @@ const MessageList = ({ messages, currentChannel }) => {
   const { user } = useAuth();
   const messagesEndRef = useRef(null);
 
-  // Auto-scroll to the bottom when new messages are received
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
