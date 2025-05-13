@@ -7,6 +7,7 @@ const MessageInput = ({ channelId }) => {
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
   const [isAttachmentMenuOpen, setIsAttachmentMenuOpen] = useState(false);
   const fileInputRef = useRef(null);
+  const textareaRef = useRef(null);
   const socket = useSocket();
 
   const handleSubmit = (e) => {
@@ -21,6 +22,11 @@ const MessageInput = ({ channelId }) => {
 
     // Clear input
     setMessage('');
+    
+    // Reset textarea height
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+    }
   };
 
   const handleKeyPress = (e) => {
@@ -28,6 +34,16 @@ const MessageInput = ({ channelId }) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSubmit(e);
+    }
+  };
+
+  const handleTextareaChange = (e) => {
+    setMessage(e.target.value);
+    
+    // Auto-resize the textarea
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 200)}px`;
     }
   };
 
@@ -62,12 +78,16 @@ const MessageInput = ({ channelId }) => {
     // Insert emoji at cursor position or at end
     setMessage(prev => prev + emoji);
     setIsEmojiPickerOpen(false);
+    
+    // Focus the textarea after selecting an emoji
+    if (textareaRef.current) {
+      textareaRef.current.focus();
+    }
   };
 
-  // Placeholder for emoji picker
+  // Emoji picker component
   const EmojiPicker = () => (
     <div className="emoji-picker">
-      {/* This would be your actual emoji picker component */}
       <div className="emoji-grid">
         {['😀', '😂', '😍', '🥳', '😎', '👍', '❤️', '🔥'].map(emoji => (
           <button
@@ -111,28 +131,31 @@ const MessageInput = ({ channelId }) => {
       {isAttachmentMenuOpen && <AttachmentMenu />}
 
       <form onSubmit={handleSubmit}>
-
         <button
           type="button"
           className="attachment-button"
           onClick={toggleAttachmentMenu}
+          aria-label="Add attachment"
         >
           <i className="fas fa-plus-circle"></i>
         </button>
 
         <textarea
+          ref={textareaRef}
           value={message}
-          onChange={(e) => setMessage(e.target.value)}
+          onChange={handleTextareaChange}
           onKeyDown={handleKeyPress}
-          placeholder={`Message #${channelId ? 'channel-name' : '...'}`}
+          placeholder={`Message ${channelId ? '#channel-name' : '...'}`}
           disabled={!channelId}
           className="message-textarea"
+          rows={1}
         />
 
         <button
           type="button"
           className="emoji-picker-button"
           onClick={toggleEmojiPicker}
+          aria-label="Add emoji"
         >
           <i className="fas fa-smile"></i>
         </button>
@@ -141,6 +164,7 @@ const MessageInput = ({ channelId }) => {
           type="submit"
           className="send-button"
           disabled={!message.trim() || !channelId}
+          aria-label="Send message"
         >
           <i className="fas fa-paper-plane"></i>
         </button>

@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import HomePage from './components/Home';
 import LoginPage from './components/auth/Login';
 import RegisterPage from './components/auth/Register';
-import ChatDashboard from "./components/chat/ChatDashboard";
 import './styles/Alert.css';
 
 const App = () => {
@@ -31,7 +30,6 @@ const App = () => {
         <Route path="/" element={<HomePage showAlert={showAlert} />} />
         <Route path="/login" element={<LoginPage showAlert={showAlert} />} />
         <Route path="/register" element={<RegisterPage showAlert={showAlert} />} />
-        <Route path="/channel" element={<ChatDashboard showAlert={showAlert} />} />
       </Routes>
     </Router>
   );
