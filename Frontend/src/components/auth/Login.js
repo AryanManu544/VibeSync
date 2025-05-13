@@ -43,7 +43,7 @@ const Login = ({ showAlert }) => {
       const json = await response.json();
       if (json.authtoken) {
         // Save token
-        sessionStorage.setItem("token", json.authtoken);
+        localStorage.setItem("token", json.authtoken);
         // Handle remember me
         if (credentials.remember) {
           localStorage.setItem("loginCreds", JSON.stringify(credentials));
