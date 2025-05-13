@@ -52,7 +52,7 @@ const Register = ({ mode, showAlert }) => {
       if (json.authtoken) {
         localStorage.setItem("token", json.authtoken);
         showAlert("Account created successfully", "success");
-        navigate("/");
+        navigate("/channel");
       } else {
         showAlert("Invalid credentials", "danger");
       }

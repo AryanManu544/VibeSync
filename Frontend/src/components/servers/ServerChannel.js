@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import apiService from '../../services/apiService';
 import { useAuth } from '../../context/AuthContext';
-import './ServerChannel.css';
+import '../../styles/ServerChannel.css';
 
 const ServerChannel = ({ onChannelSelect }) => {
   const [server, setServer] = useState(null);

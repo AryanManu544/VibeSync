@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import apiService from '../../services/apiService';
-import './ServerList.css';
+import '../../styles/ServerList.css';
 
 const ServerList = () => {
   const [servers, setServers] = useState([]);

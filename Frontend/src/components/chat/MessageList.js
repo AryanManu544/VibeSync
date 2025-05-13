@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import './MessageList.css';
+import '../../styles/MessageList.css';
 
 const MessageList = ({ messages, currentChannel }) => {
   const { user } = useAuth();

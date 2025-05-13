@@ -1,0 +1,23 @@
+.chat-dashboard {
+  display: grid;
+  grid-template-columns: 72px 240px 1fr;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.servers-col, .channels-col {
+  background: #2f3136;
+  overflow-y: auto;
+}
+
+.chat-col {
+  display: flex;
+  flex-direction: column;
+  background: #36393f;
+}
+
+/* placeholder when nothing is selected */
+.placeholder {
+  color: #888;
+  padding: 1rem;
+}

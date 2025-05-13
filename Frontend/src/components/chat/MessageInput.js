@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useSocket } from '../../context/SocketContext';
-import './MessageInput.css';
+import '../../styles/MessageInput.css';
 
 const MessageInput = ({ channelId }) => {
   const [message, setMessage] = useState('');
