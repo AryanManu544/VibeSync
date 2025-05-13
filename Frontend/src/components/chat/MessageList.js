@@ -23,7 +23,7 @@ const MessageList = ({ messages, currentChannel }) => {
   // Group messages by date
   const groupMessagesByDate = (messages) => {
     const groups = {};
-    
+
     messages.forEach(message => {
       const date = new Date(message.timestamp).toLocaleDateString();
       if (!groups[date]) {
@@ -31,7 +31,7 @@ const MessageList = ({ messages, currentChannel }) => {
       }
       groups[date].push(message);
     });
-    
+
     return groups;
   };
 
@@ -44,39 +44,39 @@ const MessageList = ({ messages, currentChannel }) => {
           <div className="date-divider">
             <span>{date}</span>
           </div>
-          
+
           {dateMessages.map((message) => {
             const isCurrentUser = message.userId === user?.id;
-            
+
             return (
-              <div 
-                key={message.id} 
-                className={`message ${isCurrentUser ? 'my-message' : ''}`}
+              <div
+                key={message.id}
+                className={`message ${isCurrentUser ? 'message--self' : ''}`}
               >
                 {!isCurrentUser && (
                   <div className="message-avatar">
-                    <img 
-                      src={message.user?.avatarUrl || '/default-avatar.png'} 
-                      alt={message.user?.username || 'User'} 
+                    <img
+                      src={message.user?.avatarUrl || '/default-avatar.png'}
+                      alt={message.user?.username || 'User'}
                     />
                   </div>
                 )}
-                
+
                 <div className="message-content">
                   {!isCurrentUser && (
                     <div className="message-header">
                       <span className="username">{message.user?.username || 'Unknown User'}</span>
                       <span className="timestamp">
-                        {new Date(message.timestamp).toLocaleTimeString([], { 
-                          hour: '2-digit', 
-                          minute: '2-digit' 
+                        {new Date(message.timestamp).toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit'
                         })}
                       </span>
                     </div>
                   )}
-                  
+
                   <div className="message-text">{message.content}</div>
-                  
+
                   {/* Message actions: reactions, edit, delete */}
                   {isCurrentUser && (
                     <div className="message-actions">
@@ -97,7 +97,7 @@ const MessageList = ({ messages, currentChannel }) => {
           })}
         </div>
       ))}
-      
+
       <div ref={messagesEndRef} />
     </div>
   );

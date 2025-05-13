@@ -187,7 +187,7 @@ const ServerChannel = ({ onChannelSelect }) => {
   }
 
   return (
-    <div className="server-channel-container">
+    <div className="server-channel">
       {/* Server Header */}
       <div className="server-header">
         <h2>{server.name}</h2>

@@ -1,0 +1,197 @@
+/* Container for the server icons sidebar */
+.server-list {
+  width: 72px;
+  background: #2f3136;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 0;
+  box-shadow: 2px 0 6px rgba(0, 0, 0, 0.5);
+  position: relative;
+  overflow-y: auto;
+}
+
+/* Individual server/home/add icons */
+.server-icon {
+  width: 48px;
+  height: 48px;
+  margin: 4px 0;
+  border-radius: 50%;
+  background: #36393f;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.server-icon img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* Home icon gets a special look */
+.home-icon {
+  background: #5865f2;
+}
+
+.server-icon:hover {
+  background: #3f4147;
+}
+
+/* Active (selected) server */
+.server-icon.active {
+  background: #5865f2;
+}
+
+/* Separator line between home and servers */
+.server-separator {
+  width: 32px;
+  height: 2px;
+  background: #72767d;
+  margin: 8px 0;
+}
+
+/* Tooltip for hover */
+.server-tooltip {
+  position: absolute;
+  top: 50%;
+  left: 72px;
+  transform: translateY(-50%);
+  background: rgba(32,34,37,0.9);
+  color: #dcddde;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  z-index: 10;
+}
+
+.server-icon:hover .server-tooltip,
+.server-icon.active .server-tooltip {
+  opacity: 1;
+}
+
+/* Loading / error states */
+.loading-servers,
+.error-servers {
+  color: #72767d;
+  font-size: 0.75rem;
+  margin-top: 16px;
+  text-align: center;
+  padding: 0 8px;
+}
+
+/* ===== Add Server Modal ===== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+}
+
+.modal-content {
+  background: #36393f;
+  padding: 24px;
+  border-radius: 12px;
+  width: 300px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: #fff;
+}
+
+.close-button {
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  color: #72767d;
+  cursor: pointer;
+}
+
+.close-button:hover {
+  color: #fff;
+}
+
+.form-group {
+  margin-bottom: 12px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.9rem;
+  color: #dcddde;
+  margin-bottom: 4px;
+}
+
+.form-group input[type="text"],
+.form-group input[type="file"] {
+  width: 100%;
+  padding: 8px;
+  font-size: 0.9rem;
+  border-radius: 6px;
+  border: none;
+  background: #2f3136;
+  color: #fff;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.cancel-button,
+.submit-button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.cancel-button {
+  background: #72767d;
+  color: #dcddde;
+}
+
+.cancel-button:hover {
+  background: #5a5c61;
+}
+
+.submit-button {
+  background: #5865f2;
+  color: #fff;
+}
+
+.submit-button:disabled {
+  background: #3f4045;
+  cursor: not-allowed;
+}
+
+.submit-button:hover:enabled {
+  background: #4752c4;
+}

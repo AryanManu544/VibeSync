@@ -12,20 +12,15 @@ const { User, Server, Channel, Message } = require('./models');
 const app = express();
 const server = http.createServer(app);
 
-// Enable CORS for frontend
 app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:3000' }));
-// Parse JSON bodies
 app.use(express.json());
 
-// Ping route to verify server is running
 app.get('/ping', (req, res) => {
   res.send('pong');
 });
 
-// Mount auth routes
 app.use('/api/auth', authRouter);
 
-// Socket.io setup
 const io = socketIo(server, {
   cors: {
     origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
@@ -81,5 +76,7 @@ const connectDB = async () => {
     process.exit(1);
   }
 };
+const serversRouter = require('./routes/servers');
+app.use('/api/servers', serversRouter);
 
 connectDB();

@@ -16,7 +16,7 @@ const ServerList = () => {
     const fetchServers = async () => {
       try {
         const response = await apiService.get('/servers');
-        setServers(response);
+        setServers(response.data);
         setLoading(false);
       } catch (err) {
         console.error("Failed to fetch servers:", err);
@@ -133,14 +133,6 @@ const ServerList = () => {
 
   return (
     <div className="server-list">
-      {/* Discord Home Button */}
-      <div 
-        className={`server-icon home-icon ${!serverId ? 'active' : ''}`}
-        onClick={() => navigate('/')}
-      >
-        <img src="/discord-icon.ico" alt="Home" />
-      </div>
-      
       {/* Server Separator */}
       <div className="server-separator"></div>
       

@@ -11,14 +11,14 @@ const MessageInput = ({ channelId }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     if (!message.trim() || !channelId) return;
 
     socket.emit('send_message', {
       channelId,
       content: message.trim()
     });
-    
+
     // Clear input
     setMessage('');
   };
@@ -37,7 +37,7 @@ const MessageInput = ({ channelId }) => {
 
     // In a real app, you would upload this to your server/cloud storage
     setMessage(prev => prev + `[Uploading: ${files[0].name}]`);
-    
+
     // Close the attachment menu
     setIsAttachmentMenuOpen(false);
   };
@@ -70,9 +70,9 @@ const MessageInput = ({ channelId }) => {
       {/* This would be your actual emoji picker component */}
       <div className="emoji-grid">
         {['😀', '😂', '😍', '🥳', '😎', '👍', '❤️', '🔥'].map(emoji => (
-          <button 
-            key={emoji} 
-            className="emoji-button" 
+          <button
+            key={emoji}
+            className="emoji-button"
             onClick={() => handleEmojiSelect(emoji)}
           >
             {emoji}
@@ -98,28 +98,28 @@ const MessageInput = ({ channelId }) => {
   );
 
   return (
-    <div className="message-input-container">
-      {/* Hidden file input */}
-      <input 
-        type="file" 
-        ref={fileInputRef} 
-        style={{ display: 'none' }} 
-        onChange={handleFileUpload} 
+    <div className="message-input">
+      <input
+        type="file"
+        ref={fileInputRef}
+        style={{ display: 'none' }}
+        onChange={handleFileUpload}
         multiple
       />
 
       {isEmojiPickerOpen && <EmojiPicker />}
       {isAttachmentMenuOpen && <AttachmentMenu />}
-      
-      <form className="message-form" onSubmit={handleSubmit}>
-        <button 
-          type="button" 
+
+      <form onSubmit={handleSubmit}>
+
+        <button
+          type="button"
           className="attachment-button"
           onClick={toggleAttachmentMenu}
         >
           <i className="fas fa-plus-circle"></i>
         </button>
-        
+
         <textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}
@@ -128,17 +128,17 @@ const MessageInput = ({ channelId }) => {
           disabled={!channelId}
           className="message-textarea"
         />
-        
-        <button 
-          type="button" 
+
+        <button
+          type="button"
           className="emoji-picker-button"
           onClick={toggleEmojiPicker}
         >
           <i className="fas fa-smile"></i>
         </button>
-        
-        <button 
-          type="submit" 
+
+        <button
+          type="submit"
           className="send-button"
           disabled={!message.trim() || !channelId}
         >
