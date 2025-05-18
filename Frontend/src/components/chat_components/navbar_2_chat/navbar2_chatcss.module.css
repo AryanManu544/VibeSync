@@ -1,0 +1,6 @@
+.main{
+    display: grid;
+    grid-template-rows: 50px auto;
+    background-color: #230069;
+    height: 94vh;
+}

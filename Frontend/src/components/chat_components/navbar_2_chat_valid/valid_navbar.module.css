@@ -1,0 +1,209 @@
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans&display=swap');
+
+.server_name{
+    position: relative;
+    border-bottom: 1px solid #232427;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    color: white;
+    justify-content: space-between;
+    cursor: pointer;
+}
+
+.server_name:hover{
+    background-color: #4F545C66;
+}
+
+.options_wrap{
+    position: absolute;
+    top: 4rem;
+    left: .7rem;
+    color: white;
+    background-color: #18191C;
+    border-radius: 5px;
+    padding: .5rem;
+    width: 90%;
+}
+
+.options{
+    display: flex;
+    justify-content: space-between;
+    padding: .5rem;
+    font-weight: 400;
+    font-size: .8rem;
+    cursor: pointer;
+    border-radius: 5px;
+    color: #B9BBBE;
+}
+
+.options:hover{
+    background-color: blueviolet;
+    color: white !important; 
+}
+
+.options:last-child:hover{
+    background-color: rgb(231, 98, 95);
+}
+
+#modal_main_wrap{
+    max-width: 450px;
+}
+
+
+.modal_main{
+    background-color: #36393F;
+    padding: 1rem;  
+    color: white;  
+}
+
+.modal_comps{
+    margin-bottom: .5rem;
+}
+
+#modal_header{
+    margin-bottom: 1rem;
+}
+
+#primary_heading{
+    color: white;
+    font-size: 1.5rem;
+    font-weight: 650;
+}
+
+#channel_name{
+    color: white;
+    font-size: .8rem;
+    font-weight: 600;
+    margin-block: 1rem;
+    
+}
+
+.input_div{
+    display: flex;
+    align-items: center;
+    background-color: #202225;
+    margin-top: .5rem;
+    border-radius: 5px;
+    padding: .5rem;
+}
+
+
+#channel_name input{
+    background-color: #202225;
+    border: none;
+    width: 100%;
+    text-indent: .5rem;
+    caret-color: white;  
+    font-size: 1rem;
+    color: #A0A3A6
+}
+
+#channel_name input:focus{
+    outline: none;
+}
+
+#channel_name input::placeholder{
+    font-size: 1rem;
+}
+
+#modal_buttons{
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    align-items: center;
+}
+
+.buttons{
+    cursor: pointer;
+}
+
+#cancel_button{
+    background-color: inherit;
+    border: none;
+    color: white;
+}
+
+#create_button{
+    border: none;
+    color: white;
+    background-color: blue;
+    padding: .3rem;
+    border-radius: 3px;
+}
+
+#create_button:hover{
+    background-color: rgb(71, 71, 243);
+}
+
+
+.invite_card {
+  background-color: #230069;      
+  border-radius: 12px;            
+  box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+  padding: 2rem 1.5rem;          
+  max-width: 360px;              
+  width: 90%;
+  margin: auto;                
+  color: #dcddde;              
+  position: relative;
+}
+
+.invite_card_header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.invite_card_title {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.invite_card_close {
+  cursor: pointer;
+  color: white;
+}
+
+.invite_card_close:hover {
+  color: #fff;
+}
+
+.invite_card_body {
+  background-color: #63499c;
+  border-radius: 6px;
+  padding: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.invite_card_link {
+  font-family: monospace;
+  font-size: 0.85rem;
+  word-break: break-all;
+  color: white;
+  flex: 1;
+  margin-right: 0.5rem;
+}
+
+.invite_card_copy {
+  background-color: #7289da;
+  border: none;
+  border-radius: 4px;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+  color: #fff;
+  cursor: pointer;
+}
+
+.invite_card_copy:hover {
+  background-color: #5b6eae;
+}
+.invite_modal_content {
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
