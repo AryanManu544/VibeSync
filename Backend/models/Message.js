@@ -1,28 +1,32 @@
-const mongoose = require("mongoose")
+const mongoose = require('mongoose');
 
-const MessageSchema = new mongoose.Schema({
-    content: {
-      type: String,
-      required: true
-    },
-    author: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: true
-    },
-    channel: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Channel',
-      required: true
-    },
-    timestamp: {
-      type: Date,
-      default: Date.now
-    },
-    edited: {
-      type: Boolean,
-      default: false
-    }
-  }, { timestamps: true });
+const messageSchema = new mongoose.Schema({
+  sender: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  receiver: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  content: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  timestamp: {
+    type: Date,
+    default: Date.now
+  },
+  read: {
+    type: Boolean,
+    default: false
+  }
+});
 
-module.exports = mongoose.model('Message', MessageSchema);
+// Compound index to optimize querying conversations
+messageSchema.index({ sender: 1, receiver: 1, timestamp: 1 });
+
+module.exports = mongoose.model('Message', messageSchema);
