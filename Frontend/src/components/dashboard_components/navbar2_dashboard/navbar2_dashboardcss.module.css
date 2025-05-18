@@ -1,0 +1,258 @@
+.search_wrap{
+    height: 48px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-bottom: 2px solid #230069;
+    box-sizing: content-box;
+    background-color: #230069;
+}
+
+.search{
+    display: flex;
+    justify-content: flex-start;
+    text-indent: 10px;
+    align-items: center;
+    width: 90%;
+    height: 65%;
+    background-color: #370b8e;
+    color: #A3A6AA;
+    border-radius: 5px;
+    font-size: .9rem;
+    cursor: pointer;
+}
+
+.friends_wrap{
+    height: 70px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #230069;
+}
+
+.friends{
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    /* color: #96989D; */
+    font-size: medium;
+    width: 95%;
+    height: 45px;
+    border-radius: 5px;
+    background-color: #230069;
+    color: white;
+}
+
+.friends_icon {
+    margin-left: 1rem;
+}
+
+.friends img{
+    height: 50%;
+    width: fit-content;
+}
+
+
+.heading{
+    display: grid;
+    grid-template-columns: 85% 15%;
+    color: #B9BBBE;
+    font-size: .8rem;
+    margin-bottom: 1rem;
+    background-color: #230069;
+}
+
+#plus{
+    display: flex;
+    color: white;
+    cursor: pointer;
+}
+
+
+#text{
+    display: flex;
+    align-items: center;
+    margin-left: 1.5rem;
+    cursor: pointer;
+}
+
+.text:hover{
+    color: white;
+    background-color: #230069;
+}
+
+.friend_details_wrap{
+    margin-bottom: .2rem;
+}
+
+.friends_area{
+    border: 2px solid white;
+    height: 400px;
+}
+
+.friend_details{
+    height: 48px;
+    display: flex;
+    cursor: pointer;
+    margin: 0 1rem 0 1rem ;
+    background-color: #230069;
+}
+
+.friend_details:hover{
+    background-color: #230069;
+    border-radius: 5px;
+}
+
+#profile_wrap{
+    width: 20%;
+    margin-left: 3%;
+    display: flex;
+    align-items: center;
+    background-color: #230069;
+}
+
+.profile_pic{
+    height: 35px;
+    width: 35px;
+    position: relative;
+}
+
+.online_status{
+    background-color: #2F3136;
+    height: 15px;
+    width: 15px;
+    border-radius: 50%;
+    margin-left: 60%;
+    position: relative;
+    z-index: 1;
+    padding: .1rem;
+    bottom: 30%;
+}
+
+/* this is here to affect the child element when parent element is hovered */
+.friend_details:hover .online_status{
+    background-color: #4b4d50;
+}
+
+
+.offline_icon{
+    height: 100%;
+    width: 100%;
+    display: flex;
+    color: #747F8D;
+    font-weight: 900;
+}
+
+
+
+.profile_pic img{
+    height: 100%;
+    width: 100%;
+    
+    border-radius: 50%;
+}
+
+.name{
+    display: flex;
+    align-items: center;
+    width: 80%;
+    color: #230069;
+    font-weight: 500;
+    font-size: .9rem;
+}
+.container {
+  background-color: #230069;    
+  height: 100vh;                
+}
+.no_dms{
+    margin-left: 25px;
+    font-size: 15px;
+}
+.wrapper {
+  display: flex;
+  height: 100%;
+  background-color: #230069;
+
+}
+
+.container {
+  width: 260px;
+  background-color: #230069;
+  display: flex;
+  flex-direction: column;
+}
+
+.main_panel {
+  flex: 1;
+  background-color: #36393f;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.empty {
+  text-align: center;
+  color: #230069;
+  margin-top: 20%;
+}
+.sidebar_container {
+  display: flex;
+  flex-direction: column;
+  background-color: #230069;
+  height:94vh
+}
+
+/* Base DM item styling */
+.dm_item {
+  background-color: #230069 !important;
+  border: none !important;
+  color: #b9a0ff !important;
+}
+
+/* Purple text for all elements */
+.purple_text,
+.purple_text span,
+.dm_name,
+.dm_tag {
+  color: #b9a0ff !important;
+}
+
+/* Image container */
+.dm_item {
+  display: flex !important;
+  align-items: center !important;
+  padding: 8px 12px !important;
+}
+
+/* Ensure flex items don't shrink too much */
+.flex-grow-1 {
+  flex-grow: 1 !important;
+  min-width: 0 !important; /* Allows text truncation to work */
+}
+/* Hover state */
+.dm_item:hover {
+  background-color: rgba(185, 160, 255, 0.1) !important;
+}
+
+/* Active/selected state */
+.active_dm {
+  background-color: rgba(185, 160, 255, 0.2) !important;
+}
+
+/* Override Bootstrap's list group item colors */
+.list-group-item {
+  color: #b9a0ff !important;
+}
+
+.list-group-item-action {
+  color: #b9a0ff !important;
+}
+
+.dm_name {
+  color: #b9a0ff !important;
+  font-weight: 500;
+  margin-left: 8px; /* Add some spacing between image and name */
+  white-space: nowrap; /* Prevent wrapping */
+  overflow: hidden;
+  text-overflow: ellipsis; /* Add ellipsis if text is too long */
+  min-width: 60px; /* Ensure minimum width for visibility */
+}
