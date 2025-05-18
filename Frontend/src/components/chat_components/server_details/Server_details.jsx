@@ -1,0 +1,173 @@
+import React, { useState, useEffect } from 'react';
+import servercss from '../server_details/server_details.module.css';
+import {
+  KeyboardArrowDown as KeyboardArrowDownIcon,
+  KeyboardArrowUp as KeyboardArrowUpIcon,
+  Add as AddIcon,
+  VolumeUp as VolumeUpIcon,
+  Tag as TagIcon,
+  DeleteForever as DeleteForeverIcon
+} from '@mui/icons-material';
+import { useDispatch } from 'react-redux';
+import { change_page_id, change_page_name } from '../../../Redux/current_page';
+import Modal from 'react-bootstrap/Modal';
+import Radio from '@mui/material/Radio';
+import { useParams } from 'react-router-dom';
+
+/**
+ * @param {Object} props
+ * @param {function} props.new_req_received - callback to refresh parent data
+ * @param {Object} props.elem - category object with channels
+ */
+export default function ServerDetails({ new_req_received = () => {}, elem }) {
+  const dispatch = useDispatch();
+  const { server_id } = useParams();
+  const url = process.env.REACT_APP_URL;
+
+  // UI state
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showChannels, setShowChannels] = useState(true);
+  const [selectedChannelType, setSelectedChannelType] = useState('text');
+  const [newChannelName, setNewChannelName] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
+
+  // Local channels state for immediate UI update
+  const [channels, setChannels] = useState(elem.channels || []);
+
+  // Sync local state when prop changes
+  useEffect(() => {
+    setChannels(elem.channels || []);
+  }, [elem.channels]);
+
+  // Toggle channels visibility
+  const toggleChannels = () => setShowChannels(v => !v);
+
+  // Open/close "create channel" modal
+  const openModal = () => setShowCreateModal(true);
+  const closeModal = () => {
+    setShowCreateModal(false);
+    setNewChannelName('');
+    setSelectedChannelType('text');
+    setIsCreating(false);
+  };
+
+  // Create a new channel
+  const createChannel = async () => {
+    if (!newChannelName.trim()) return;
+    setIsCreating(true);
+    try {
+      const res = await fetch(`${url}/add_new_channel`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-auth-token': localStorage.getItem('token')
+        },
+        body: JSON.stringify({
+          channel_name: newChannelName,
+          category_id: elem._id,
+          channel_type: selectedChannelType,
+          server_id
+        })
+      });
+      const data = await res.json();
+      if (data.status === 200) {
+        new_req_received();
+        closeModal();
+      }
+    } catch (err) {
+      console.error('Create channel error:', err);
+      setIsCreating(false);
+    }
+  };
+
+  // Delete an existing channel
+  const deleteChannel = async (channelId) => {
+    const confirmDelete = window.confirm('Delete this channel?');
+    if (!confirmDelete) return;
+    try {
+      const res = await fetch(`${url}/delete_channel`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-auth-token': localStorage.getItem('token')
+        },
+        body: JSON.stringify({ server_id, channel_id: channelId })
+      });
+      const data = await res.json();
+      if (data.status === 200) {
+        // remove from local UI immediately
+        setChannels(prev => prev.filter(c => c._id !== channelId));
+        new_req_received();
+      }
+    } catch (err) {
+      console.error('Delete channel error:', err);
+    }
+  };
+
+  // Switch active channel
+  const selectChannel = (type, name, id) => {
+    if (type === 'text') {
+      dispatch(change_page_name(name));
+      dispatch(change_page_id(id));
+    }
+  };
+
+  return (
+    <div className={servercss.serverPanel}>
+      <div className={servercss.categories}>
+        <div className={servercss.categories_left} onClick={toggleChannels}>
+          {showChannels ? <KeyboardArrowUpIcon fontSize="small" /> : <KeyboardArrowDownIcon fontSize="small" />}
+          {elem.category_name}
+        </div>
+        <div className={servercss.categories_left}>
+          <AddIcon onClick={openModal} fontSize="small" />
+        </div>
+      </div>
+
+      {showChannels && channels.map(channel => (
+        <div key={channel._id} className={servercss.channels_wrap}>
+          <div className={servercss.channels}>
+            <div className={servercss.channel_left} onClick={() => selectChannel(channel.channel_type, channel.channel_name, channel._id)}>
+              {channel.channel_type === 'text' ? <TagIcon fontSize="small" /> : <VolumeUpIcon fontSize="small" />}
+              <div className={servercss.channel_name}>{channel.channel_name}</div>
+            </div>
+            <div className={servercss.channel_delete}>
+              <DeleteForeverIcon onClick={() => deleteChannel(channel._id)} fontSize="small" style={{ cursor: 'pointer', color: '#e74c3c' }} />
+            </div>
+          </div>
+        </div>
+      ))}
+
+      <Modal show={showCreateModal} centered onHide={closeModal} id={servercss.modal_main_wrap}>
+        <div className={servercss.modal_main}>
+          <h3>Create Channel in "{elem.category_name}"</h3>
+          <div className={servercss.channel_type_section}>
+            <label>
+              <Radio checked={selectedChannelType === 'text'} value="text" onChange={() => setSelectedChannelType('text')} />
+              Text
+            </label>
+            <label>
+              <Radio checked={selectedChannelType === 'voice'} value="voice" onChange={() => setSelectedChannelType('voice')} />
+              Voice
+            </label>
+          </div>
+          <div className={servercss.input_div}>
+            <input
+              type="text"
+              value={newChannelName}
+              onChange={e => setNewChannelName(e.target.value)}
+              placeholder="new-channel"
+              disabled={isCreating}
+            />
+          </div>
+          <div className={servercss.modal_buttons}>
+            <button onClick={closeModal} disabled={isCreating}>Cancel</button>
+            <button onClick={createChannel} disabled={isCreating || !newChannelName.trim()}>
+              {isCreating ? 'Creating…' : 'Create'}
+            </button>
+          </div>
+        </div>
+      </Modal>
+    </div>
+  );
+}
