@@ -51,7 +51,7 @@ const Login = ({ showAlert }) => {
           localStorage.removeItem("loginCreds");
         }
         showAlert("Logged in successfully", "success");
-        navigate("/channel");
+        navigate("/dashboard");
       } else {
         showAlert("Invalid credentials", "danger");
       }

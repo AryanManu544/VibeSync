@@ -1,0 +1,112 @@
+.channel-dashboard {
+  display: grid;
+  grid-template-columns: 80px 260px 1fr; /* sidebar / friends / chat */
+  height: 100vh;
+  background: #1e1f2b;
+  color: #e3e5e8;
+}
+
+/* ——— Left column: your server list ——— */
+.servers-col {
+  background: #2f3136;
+  overflow-y: auto;
+}
+
+/* ——— Middle: Friends panel ——— */
+.friends-col {
+  background: #2f3136;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Tabs at top */
+.friends-col .tabs {
+  display: flex;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: #36393f;
+}
+.friends-col .tab {
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  background: transparent;
+  color: #b9bbbe;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+.friends-col .tab.active {
+  background: #5865f2;
+  color: #fff;
+}
+.friends-col .tab.add-friend {
+  margin-left: auto;
+  background: #5865f2;
+  color: #fff;
+}
+
+/* Search */
+.friends-col .search {
+  position: relative;
+  padding: 0 1rem 1rem;
+}
+.friends-col .search i {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #72767d;
+}
+.friends-col .search input {
+  width: 100%;
+  padding: 0.5rem 1rem 0.5rem 2.5rem;
+  border: none;
+  border-radius: 4px;
+  background: #40444b;
+  color: #dcddde;
+}
+
+/* List of friends */
+.friends-col .friend-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 1rem 1rem;
+}
+.friends-col .friend-item {
+  display: flex;
+  align-items: center;
+  background: #36393f;
+  padding: 0.5rem;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.friends-col .friend-item:hover {
+  background: #40444b;
+}
+.friends-col .friend-item .avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 0.75rem;
+  object-fit: cover;
+}
+.friends-col .friend-item .info .name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #e3e5e8;
+}
+.friends-col .friend-item .info .status {
+  font-size: 0.85rem;
+  color: #72767d;
+}
+
+/* ——— Right: placeholder ——— */
+.chat-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #72767d;
+  font-size: 1rem;
+  background: #2e2f3a;
+}
