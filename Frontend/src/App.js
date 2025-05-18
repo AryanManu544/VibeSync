@@ -1,14 +1,17 @@
-// src/App.js
 import React, { useState } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import HomePage     from './components/Home';
-import LoginPage    from './components/auth/Login';
-import RegisterPage from './components/auth/Register';
-import ChannelPage  from './pages/ChannelPage';
-import DashboardPage from './pages/Dashboard';
-import './styles/Alert.css';
+import Dashboard from './components/dashboard/Dashboard'
+import Register from './components/auth/Register'
+import Login from './components/auth/Login'
+import Home from './components/Home'
+import {
+	BrowserRouter as Router,
+	Route,
+	Routes,
+  } from "react-router-dom";
+import Invite from './components/Invite/Invite'
+import './styles/Alert.css'
 
-const App = () => {
+function App() {
   const [alert, setAlert] = useState({ msg: '', type: '' });
 
   const showAlert = (message, type = 'info') => {
@@ -17,29 +20,23 @@ const App = () => {
   };
 
   return (
-    <>
-      {alert.msg && (
-        <div className={`alert alert-${alert.type}`}>
-          {alert.msg}
-        </div>
-      )}
+    <div>
+        <Router>
+          <Routes>
 
-      <Routes>
-        <Route path="/"         element={<HomePage    showAlert={showAlert} />} />
-        <Route path="/login"    element={<LoginPage   showAlert={showAlert} />} />
-        <Route path="/register" element={<RegisterPage showAlert={showAlert} />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
-        {/* Updated channel route: serverId required, channelId optional */}
-        <Route
-          path="/channel/:serverId/:channelId?"
-          element={<ChannelPage showAlert={showAlert} />}
-        />
-
-        {/* Redirect any unknown paths back to home */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </>
+                  <Route path="/" element={<Home showAlert={showAlert}/>}></Route>
+                  <Route path="/register" element={<Register showAlert={showAlert}/>} />
+                  <Route path="/login" element={<Login showAlert={showAlert}/>} />
+                  <Route exact path="/channels/:server_id" element={<Dashboard/>}></Route>
+                  <Route exact path="/invite/:invite_link" element={<Invite/>}></Route>
+          </Routes>
+        </Router>
+          
+        
+        
+      
+    </div>
   );
-};
+}
 
 export default App;

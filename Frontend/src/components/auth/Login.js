@@ -20,9 +20,9 @@ const Login = ({ showAlert }) => {
 
   const onChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setCredentials(prev => ({
+    setCredentials((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === 'checkbox' ? checked : value,
     }));
   };
 
@@ -31,7 +31,7 @@ const Login = ({ showAlert }) => {
     const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:4000";
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+      const response = await fetch(`${API_BASE_URL}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -40,26 +40,36 @@ const Login = ({ showAlert }) => {
         }),
       });
 
-      const json = await response.json();
-      if (json.authtoken) {
-        // Save token
-        localStorage.setItem("token", json.authtoken);
-        // Handle remember me
+      // Read the body once
+      const body = await response.json();
+
+      if (!response.ok) {
+        console.error("Login error response:", body);
+        showAlert(body.error || body.message || "Login failed", "danger");
+        return;
+      }
+
+      // We have a token!
+      const token = body.token || body.authtoken;
+      if (token) {
+        localStorage.setItem("token", token);
         if (credentials.remember) {
           localStorage.setItem("loginCreds", JSON.stringify(credentials));
         } else {
           localStorage.removeItem("loginCreds");
         }
+
         showAlert("Logged in successfully", "success");
-        navigate("/dashboard");
+        navigate("/channels/@me", { replace: true });
       } else {
-        showAlert("Invalid credentials", "danger");
+        showAlert("No token received", "danger");
       }
     } catch (error) {
-      console.error("Error:", error);
-      showAlert("An error occurred", "danger");
+      console.error("Network/Login error:", error);
+      showAlert("Network error: Unable to login", "danger");
     }
   };
+
 
   return (
     <div className="background">
