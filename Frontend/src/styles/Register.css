@@ -7,7 +7,7 @@ body {
 .background {
   width: 100vw;
   height: 100vh;
-  background-image: url('../assets/loginbg.png');
+  background-image: url('../images/loginbg.png');
   background-size: 100% 100%;
   background-position: center;
   background-repeat: no-repeat;
