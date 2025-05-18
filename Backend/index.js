@@ -15,7 +15,7 @@ app.use(express.urlencoded({ extended: true, limit: '10kb' }))
 
 const allowedOrigins = [
   'http://localhost:3000',
-  'https://project-discord.netlify.app'
+  'https://vibe-sync-glqp.vercel.app'
 ];
 
 // Apply CORS to Express
