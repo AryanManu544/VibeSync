@@ -1,0 +1,87 @@
+/* src/components/DMPage/DMChat.module.css */
+.topBar {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem;
+  background: #462490;
+  border-bottom: 1px solid #2a0054;
+}
+.peerAvatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  margin-right: 0.75rem;
+}
+.peerName {
+  color: #fff;
+  font-size: 20px;
+}
+.messages {
+  flex: 1;
+  padding: 0.75rem;
+  overflow-y: auto;
+  background: #462490;
+}
+.msgMine, .msgPeer {
+  max-width: 70%;
+  margin-bottom: 0.75rem;
+}
+.msgMine {
+  margin-left: auto;
+  text-align: right;
+}
+.msgPeer {
+  margin-right: auto;
+  text-align: left;
+}
+.msgHeader {
+  display: flex;
+  align-items: center;
+  font-size: 0.75rem;
+  color: #ccc;
+}
+.msgAvatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  margin-right: 0.5rem;
+}
+.msgName {
+  font-weight: bold;
+  margin-right: 0.5rem;
+}
+.msgTime {
+  margin-left: auto;
+  font-style: italic;
+}
+.msgText {
+  background: #2a0054;
+  color: #fff;
+  padding: 0.5rem;
+  border-radius: 8px;
+  margin-top: 0.25rem;
+}
+.inputBar {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem;
+  background: #462490;
+  border-top: 1px solid #2a0054;
+}
+.input {
+  flex: 1;
+  background: #2a0054;
+  border: none;
+  padding: 0.5rem;
+  margin-left: 0.5rem;
+  color: #fff;
+}
+.input:focus {
+  outline: none;
+}
+.chatArea{
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #462490;
+}

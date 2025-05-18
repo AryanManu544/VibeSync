@@ -1,0 +1,100 @@
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.6);
+  z-index: 999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal {
+  background-color: #2f3136;
+  color: #fff;
+  border-radius: 8px;
+  padding: 24px;
+  width: 400px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
+  position: relative;
+}
+
+.modal h2 {
+  margin-top: 0;
+  font-size: 20px;
+  margin-bottom: 16px;
+}
+
+.friendList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.friendItem {
+  display: flex;
+  align-items: center;
+  background-color: #36393f;
+  border-radius: 4px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.friendItem:hover {
+  background-color: #3a3d42;
+}
+
+.friendItem input[type='checkbox'] {
+  margin-right: 12px;
+}
+
+.friendAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  margin-right: 10px;
+  object-fit: cover;
+}
+
+.friendName {
+  flex: 1;
+  font-size: 15px;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.button {
+  background-color: #5865f2;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s ease;
+}
+
+.button:hover {
+  background-color: #4752c4;
+}
+
+.cancelButton {
+  background-color: #72767d;
+}
+
+.cancelButton:hover {
+  background-color: #5a5e64;
+}
+.modal_container{
+  background-color: #4752c4 !important;
+}

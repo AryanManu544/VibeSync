@@ -1,0 +1,64 @@
+/* src/components/DMPage/DMPage.module.css */
+.container {
+  display: flex;
+  height: 100%;
+}
+.sidebar {
+  width: 240px;
+  border-right: 1px solid #444;
+  display: flex;
+  flex-direction: column;
+}
+.header {
+  padding: 1rem;
+  font-weight: bold;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.addIcon {
+  cursor: pointer;
+  color: #bbb;
+}
+.list {
+  flex: 1;
+  overflow-y: auto;
+}
+.empty {
+  padding: 1rem;
+  color: #888;
+}
+.item {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+}
+.item:hover, .active {
+  background: #555;
+}
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  margin-right: 0.75rem;
+}
+.name {
+  flex: 1;
+  color: #eee;
+}
+.status {
+  width: 12px;
+  height: 12px;
+}
+.chatArea {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: #520095;
+}
+.selectPrompt {
+  margin: auto;
+  color: #888;
+  font-size: 1.1rem;
+}
