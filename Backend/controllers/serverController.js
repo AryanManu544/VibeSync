@@ -7,7 +7,13 @@ const mongoose = require('mongoose');
 exports.createServer = async (req, res) => {
   const { server_details} = req.body;
   const server_image = req.file;
-  const { name, type, key, role } = server_details || {};
+  try {
+  server_details = JSON.parse(server_details);
+} catch (err) {
+  return res.status(400).json({ message: 'Invalid JSON in server_details' });
+}
+const { name, type, key, role } = server_details || {};
+
   const userId = req.userId;
 
   if (!name || !type || !key || !role || !userId) {
