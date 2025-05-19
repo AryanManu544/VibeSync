@@ -32,7 +32,6 @@ const IMAGES_MAP = {
 
 function Main_dashboard() {
   const dispatch = useDispatch();
-
   const option_check = useSelector(state => state.selected_option.value);
   const option_text = useSelector(state => state.selected_option.text);
   const activeDM = useSelector(state => state.active_dm);
@@ -45,8 +44,9 @@ function Main_dashboard() {
   const [input, setinput] = useState('');
   const [alert, setalert] = useState({ style: 'none', message: 'none' });
   const [image, setimage] = useState(IMAGES_MAP[1]);
+  const [loading, setLoading] = useState(false);
 
-  // Memoize relations data to prevent unnecessary changes
+  // Destructure relations for clarity
   const { incoming_reqs, outgoing_reqs, blocked } = useMemo(() => ({
     incoming_reqs: Array.isArray(user_relations?.incoming_reqs) ? user_relations.incoming_reqs : [],
     outgoing_reqs: Array.isArray(user_relations?.outgoing_reqs) ? user_relations.outgoing_reqs : [],
@@ -55,80 +55,92 @@ function Main_dashboard() {
 
   const url = process.env.REACT_APP_URL;
 
+  // Track mount status
   useEffect(() => {
-    return () => {
-      isMounted.current = false;
-    };
+    return () => { isMounted.current = false; };
   }, []);
 
-  // Data loading effect - fixed infinite loop
+  // Load data whenever option, server URL, or relation slices change
   useEffect(() => {
     if (!isMounted.current) return;
+    setLoading(true);
 
-    const loadData = async () => {
+    async function loadData() {
       try {
         let newData = [];
-        
         switch (option_check) {
-          case 1: // Online friends
-          case 2: // All friends
-            const res = await fetch(`${url}/get_friends`, {
-              headers: {
-                'x-auth-token': localStorage.getItem('token'),
-              },
+          case 1:
+          case 2: {
+            const res = await fetch(`${url}/get_friends`, { 
+              headers: { 
+                'x-auth-token': localStorage.getItem('token') 
+              } 
             });
             const data = await res.json();
-            newData = option_check === 1 
-              ? (data.friends || []).filter(friend => friend.isOnline)
+            console.log('Friends API response:', data);
+            newData = option_check === 1
+              ? (data.friends || []).filter(f => f.isOnline)
               : (data.friends || []);
             break;
+          }
+          case 3:
+            console.log('Raw incoming_reqs:', incoming_reqs);
+            console.log('Raw outgoing_reqs:', outgoing_reqs);
             
-          case 3: // Pending requests
+            // FIXED: Removed duplicated mapping code
             newData = [
-              ...incoming_reqs.map(req => ({ ...req, status: 'incoming' })),
-              ...outgoing_reqs.map(req => ({ ...req, status: 'outgoing' }))
+              ...incoming_reqs.map(req => ({
+                ...req,
+                status: 'incoming',
+                // These fields should already be normalized in the Redux slice
+              })),
+              ...outgoing_reqs.map(req => ({
+                ...req,
+                status: 'outgoing',
+                // These fields should already be normalized in the Redux slice
+              }))
             ];
-            break;
             
-          case 4: // Blocked users
+            console.log('Normalized request data:', newData);
+            break;
+          case 4:
             newData = [...blocked];
             break;
-            
-          case 5: // Add friend
+          case 5:
             newData = [];
             break;
+          default:
+            newData = [];
         }
-
-        // Only update if data actually changed
-        setoption_data(prev => {
-          if (isEqual(prev, newData)) {
-            return prev;
-          }
-          return newData;
-        });
-
+        
+        if (!isEqual(newData, option_data)) {
+          setoption_data(newData);
+        }
       } catch (err) {
         console.error('Error loading data:', err);
+        setalert({ style: 'flex', message: 'Error loading data. Please try again.' });
+      } finally {
+        setLoading(false);
       }
-    };
+    }
 
     loadData();
-  }, [option_check, url]); // Removed other dependencies
+  }, [option_check, url, incoming_reqs, outgoing_reqs, blocked, option_data]);
 
-  useEffect(() => {
-    dispatch(clearActiveDM());
-  }, [option_check, dispatch]);
+  useEffect(() => { dispatch(clearActiveDM()); }, [option_check, dispatch]);
+  useEffect(() => { setimage(IMAGES_MAP[option_check] || online_duckie); }, [option_check]);
+  useEffect(() => { setbutton_state(input.length < 1); }, [input]);
 
+  // Debugging log effect
   useEffect(() => {
-    setimage(IMAGES_MAP[option_check] || online_duckie);
-  }, [option_check]);
-
-  useEffect(() => {
-    setbutton_state(input.length < 1);
-  }, [input]);
+    console.log('Current option_data:', option_data);
+    console.log('Current user_relations state:', user_relations);
+    console.log('Active option check:', option_check);
+  }, [option_data, user_relations, option_check]);
 
   const button_clicked = useCallback(async (message, friend_data) => {
     try {
+      setLoading(true);
       const res = await fetch(`${url}/process_req`, {
         method: 'POST',
         headers: {
@@ -148,10 +160,13 @@ function Main_dashboard() {
       }
     } catch (error) {
       console.error('Error processing request:', error);
+      setalert({ style: 'flex', message: 'Error processing request' });
+    } finally {
+      setLoading(false);
     }
   }, [url, dispatch, id, username, profile_pic]);
 
-  const buttons = useMemo(() => 
+  const buttons = useMemo(() =>
     (message, Icon, friend_data) => (
       <div className={main_dashboardcss.item_3_comps_wrap} onClick={() => button_clicked(message, friend_data)}>
         <div className={main_dashboardcss.item_3_comps}>
@@ -161,11 +176,12 @@ function Main_dashboard() {
         </div>
       </div>
     ),
-  [button_clicked]);
+    [button_clicked]);
 
   const add_friend = useCallback(async (e) => {
     e.preventDefault();
     try {
+      setLoading(true);
       const res = await fetch(`${url}/add_friend`, {
         method: 'POST',
         headers: {
@@ -190,6 +206,8 @@ function Main_dashboard() {
     } catch (error) {
       console.error('Error adding friend:', error);
       setalert({ style: 'flex', message: 'An error occurred while adding friend' });
+    } finally {
+      setLoading(false);
     }
   }, [url, input, dispatch, id, profile_pic, username]);
 
@@ -200,6 +218,7 @@ function Main_dashboard() {
 
   const handleOpenDM = useCallback(async (friend) => {
     try {
+      setLoading(true);
       const res = await fetch(`${url}/create_dm`, {
         method: 'POST',
         headers: {
@@ -215,6 +234,9 @@ function Main_dashboard() {
       }
     } catch (err) {
       console.error('Error creating/opening DM:', err);
+      setalert({ style: 'flex', message: 'Error opening DM chat' });
+    } finally {
+      setLoading(false);
     }
   }, [url, dispatch]);
 
@@ -253,62 +275,78 @@ function Main_dashboard() {
     </div>
   ), [image, option_text]);
 
-  const renderFriendItem = useCallback((elem) => (
-    <div key={`${elem.id}-${elem.username}`} className={main_dashboardcss.friends_section_wrap}>
-      <div id={main_dashboardcss.online_users_wrap}>
-        <div className={main_dashboardcss.online_users}>
-          <div className={main_dashboardcss.online_comps} id={main_dashboardcss.item_1_wrap}>
-            <div id={main_dashboardcss.item_1}>
-              <img src={elem.profile_pic} alt="" />
-            </div>
-          </div>
-          <div className={main_dashboardcss.item_2_main}>
-            <div className={main_dashboardcss.online_comps} id={main_dashboardcss.item_2}>
-              <div className={main_dashboardcss.item_2_comps}>{elem.username}</div>
-              <div className={main_dashboardcss.item_2_comps} id={main_dashboardcss.item_2_2}>
-                {(() => {
-                  switch(option_check) {
-                    case 1: return 'Online';
-                    case 2: return 'Friend';
-                    case 3: return elem.status === 'incoming' ? 'Incoming Request' : 'Outgoing Request';
-                    case 4: return 'Blocked';
-                    default: return '';
-                  }
-                })()}
+  const renderFriendItem = useCallback((elem) => {
+    console.log('Rendering friend item:', elem);
+    return (
+      <div key={`${elem.id}-${elem.username}`} className={main_dashboardcss.friends_section_wrap}>
+        <div id={main_dashboardcss.online_users_wrap}>
+          <div className={main_dashboardcss.online_users}>
+            <div className={main_dashboardcss.online_comps} id={main_dashboardcss.item_1_wrap}>
+              <div id={main_dashboardcss.item_1}>
+                <img src={elem.profile_pic} alt="" />
               </div>
             </div>
-            <div className={main_dashboardcss.online_comps} id={main_dashboardcss.item_2_3}>
-              <div className={main_dashboardcss.item_2_comps} id={main_dashboardcss.item_2_3_1}>
-                <ChatBubbleIcon onClick={() => handleOpenDM(elem)} />
+            <div className={main_dashboardcss.item_2_main}>
+              <div className={main_dashboardcss.online_comps} id={main_dashboardcss.item_2}>
+                <div className={main_dashboardcss.item_2_comps}>{elem.username}</div>
+                <div className={main_dashboardcss.item_2_comps} id={main_dashboardcss.item_2_2}>
+                  {(() => {
+                    switch (option_check) {
+                      case 1: return 'Online';
+                      case 2: return 'Friend';
+                      case 3: return elem.status === 'incoming' ? 'Incoming Request' : 'Outgoing Request';
+                      case 4: return 'Blocked';
+                      default: return '';
+                    }
+                  })()}
+                </div>
+              </div>
+              <div className={main_dashboardcss.online_comps} id={main_dashboardcss.item_2_3}>
+                <div className={main_dashboardcss.item_2_comps} id={main_dashboardcss.item_2_3_1}>
+                  <ChatBubbleIcon onClick={() => handleOpenDM(elem)} />
+                </div>
               </div>
             </div>
-          </div>
-          <div className={main_dashboardcss.online_comps} id={main_dashboardcss.item_3_wrap}>
-            {option_check === 3 && elem.status === 'incoming' && (
-              <>
-                {buttons('Accept Request', DoneIcon, elem)}
-                {buttons('Decline Request', CloseIcon, elem)}
-              </>
-            )}
-            {option_check === 3 && elem.status === 'outgoing' && (
-              <>{buttons('Cancel Request', PersonRemoveIcon, elem)}</>
-            )}
-            {option_check === 4 && buttons('Unblock', PersonRemoveIcon, elem)}
+            <div className={main_dashboardcss.online_comps} id={main_dashboardcss.item_3_wrap}>
+              {option_check === 3 && elem.status === 'incoming' && (
+                <>
+                  {buttons('Accept', DoneIcon, elem)}
+                  {buttons('Ignore', CloseIcon, elem)}
+                </>
+              )}
+              {option_check === 3 && elem.status === 'outgoing' && (
+                <>{buttons('Cancel', PersonRemoveIcon, elem)}</>
+              )}
+              {option_check === 4 && buttons('Unblock', PersonRemoveIcon, elem)}
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  ), [handleOpenDM, buttons, option_check]);
+    );
+  }, [handleOpenDM, buttons, option_check]);
+
+  if (loading) {
+    return (
+      <div className={main_dashboardcss.main} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        Loading...
+      </div>
+    );
+  }
 
   if (option_check === 5) return renderAddFriend;
-  if (activeDM) {
-    return <DMChat user_info={{ username, profile_pic, id }} activeDM={activeDM} />;
+  if (activeDM) return <DMChat user_info={{ username, profile_pic, id }} activeDM={activeDM} />;
+  
+  // DEBUG: Output status counts when in pending view
+  if (option_check === 3) {
+    console.log('Showing pending view with:', option_data.length, 'items');
+    console.log('Incoming count:', incoming_reqs.length);
+    console.log('Outgoing count:', outgoing_reqs.length);
   }
 
   return (
-    <div>
+    <>
       {option_data.length === 0 ? renderDefaultView : option_data.map(renderFriendItem)}
-    </div>
+    </>
   );
 }
 

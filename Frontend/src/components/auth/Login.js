@@ -1,5 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  change_username,
+  change_tag,
+  option_profile_pic,
+  option_user_id
+} from "../../Redux/user_creds_slice";
+import {
+  setIncomingReqs,
+  setOutgoingReqs,
+  setBlocked,
+  setFriends
+} from "../../Redux/user_relations_slice";
 import "../../styles/Login.css";
 
 const Login = ({ showAlert }) => {
@@ -8,15 +21,25 @@ const Login = ({ showAlert }) => {
     password: "",
     remember: false,
   });
+  
+  const [isLoading, setIsLoading] = useState(false);
+
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  // Pull relations here so we can log after dispatch
+  const relations = useSelector(s => s.user_relations);
 
   useEffect(() => {
-    // If previously opted to remember, load from localStorage
     const saved = localStorage.getItem("loginCreds");
     if (saved) {
       setCredentials(JSON.parse(saved));
     }
   }, []);
+
+  // Debug logging for relations after they're set
+  useEffect(() => {
+    console.log("Current Redux relations state:", relations);
+  }, [relations]);
 
   const onChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -28,6 +51,7 @@ const Login = ({ showAlert }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
     const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:4000";
 
     try {
@@ -40,36 +64,61 @@ const Login = ({ showAlert }) => {
         }),
       });
 
-      // Read the body once
       const body = await response.json();
+      console.log("Login API response:", body); // Debug log
 
       if (!response.ok) {
-        console.error("Login error response:", body);
         showAlert(body.error || body.message || "Login failed", "danger");
+        setIsLoading(false);
         return;
       }
 
-      // We have a token!
       const token = body.token || body.authtoken;
-      if (token) {
-        localStorage.setItem("token", token);
-        if (credentials.remember) {
-          localStorage.setItem("loginCreds", JSON.stringify(credentials));
-        } else {
-          localStorage.removeItem("loginCreds");
-        }
-
-        showAlert("Logged in successfully", "success");
-        navigate("/channels/@me", { replace: true });
-      } else {
+      if (!token) {
         showAlert("No token received", "danger");
+        setIsLoading(false);
+        return;
       }
+
+      // Save token & (optionally) credentials
+      localStorage.setItem("token", token);
+      if (credentials.remember) {
+        localStorage.setItem("loginCreds", JSON.stringify(credentials));
+      } else {
+        localStorage.removeItem("loginCreds");
+      }
+
+      // Dispatch user info
+      const user = body.user || {};
+      dispatch(change_username(user.username));
+      dispatch(change_tag(user.tag));
+      dispatch(option_profile_pic(user.profile_pic));
+      dispatch(option_user_id(user.id));
+
+      // Log relations data structure from login
+      console.log("Relations data from login:", {
+        incoming_reqs: user.incoming_reqs || [],
+        outgoing_reqs: user.outgoing_reqs || [],
+        blocked: user.blocked || [],
+        friends: user.friends || []
+      });
+
+      // Dispatch relations
+      dispatch(setIncomingReqs(user.incoming_reqs  || []));
+      dispatch(setOutgoingReqs(user.outgoing_reqs  || []));
+      dispatch(setBlocked(user.blocked || []));
+      dispatch(setFriends(user.friends || []));
+
+      showAlert("Logged in successfully", "success");
+      setIsLoading(false);
+      navigate("/channels/@me", { replace: true });
+
     } catch (error) {
       console.error("Network/Login error:", error);
       showAlert("Network error: Unable to login", "danger");
+      setIsLoading(false);
     }
   };
-
 
   return (
     <div className="background">
@@ -86,6 +135,7 @@ const Login = ({ showAlert }) => {
               value={credentials.email}
               onChange={onChange}
               required
+              disabled={isLoading}
             />
           </div>
           <div>
@@ -98,6 +148,7 @@ const Login = ({ showAlert }) => {
               value={credentials.password}
               onChange={onChange}
               required
+              disabled={isLoading}
             />
           </div>
 
@@ -109,13 +160,16 @@ const Login = ({ showAlert }) => {
                 id="remember"
                 checked={credentials.remember}
                 onChange={onChange}
-              />{' '}
+                disabled={isLoading}
+              />
               <label htmlFor="remember">Remember Me</label>
             </div>
             <Link to="/forgotpassword">Forgot Password?</Link>
           </div>
 
-          <button type="submit">Log In</button>
+          <button type="submit" disabled={isLoading}>
+            {isLoading ? "Logging in..." : "Log In"}
+          </button>
         </form>
         <div className="text-center">
           Need an account? <Link to="/register">Register</Link>

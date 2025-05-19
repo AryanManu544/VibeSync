@@ -24,7 +24,6 @@ export const user_creds = createSlice({
     },
   })
 
-  // Action creators are generated for each case reducer function
 export const { change_username,change_tag,option_profile_pic,option_user_id} = user_creds.actions
 
 export default user_creds.reducer

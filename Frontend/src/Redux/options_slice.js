@@ -6,7 +6,7 @@ export const options = createSlice({
       value: 0,
       option_name:'ONLINE',
       status:false,
-      text:"No one's around to play with Wumpus.",
+      text:"No one's around to play with Duckie.",
       updated_options:1
     },
     reducers: {

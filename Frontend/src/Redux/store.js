@@ -5,6 +5,7 @@ import page from './current_page'
 import user_creds from './user_creds_slice'
 import direct_messages from './dms_slice'
 import active_dm from './active_dm_slice'
+import userRelationsReducer from './user_relations_slice'; 
 
 // Create the store first and assign it to a variable
 const store = configureStore({
@@ -14,7 +15,9 @@ const store = configureStore({
     current_page: page,
     user_info: user_creds,
     direct_messages,
-    active_dm
+    active_dm,
+    user_relations: userRelationsReducer,
+
   },
 })
 

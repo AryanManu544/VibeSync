@@ -761,13 +761,27 @@ app.post('/login', async (req, res) => {
     );
 
     console.log("✅ Login successful for", email);
-    return res.status(200).json({ token });
+
+    return res.status(200).json({
+      token,
+      user: {
+        id: userData._id,
+        username: userData.username,
+        tag: userData.tag,
+        profile_pic: userData.profile_pic,
+        incoming_reqs: userData.incoming_reqs || [],
+        outgoing_reqs: userData.outgoing_reqs || [],
+        blocked: userData.blocked || [],
+        friends: userData.friends || [],
+      }
+    });
 
   } catch (err) {
     console.error("❌ Login error:", err);
     return res.status(500).json({ error: 'Server error' });
   }
 });
+
 
 
 app.post('/add_friend', async function (req, res) {
@@ -885,13 +899,45 @@ app.post('/add_friend', async function (req, res) {
 })
 
 app.get('/user_relations', async function (req, res) {
-  const authHeader = req.headers['x-auth-token']
-  const user_id = jwt.verify(authHeader, process.env.ACCESS_TOKEN);
-  const result = await user.find({ _id: user_id.id })
-  const { incoming_reqs, outgoing_reqs, friends, servers } = result[0];
-  res.status(201).json({ incoming_reqs: incoming_reqs, outgoing_reqs: outgoing_reqs, friends: friends, servers: servers });
+  try {
+    const authHeader = req.headers['x-auth-token'];
+    const user_id = jwt.verify(authHeader, process.env.ACCESS_TOKEN);
+    
+    const result = await user.findOne({ _id: user_id.id })
+      .select('incoming_reqs outgoing_reqs friends blocked servers')
+      .lean();
 
-})
+    if (!result) {
+      return res.status(404).json({ message: 'User not found', status: 404 });
+    }
+
+    // Transform data to match frontend expectations
+    const response = {
+      incoming_requests: result.incoming_reqs?.map(req => ({
+        id: req.id,
+        username: req.username,
+        profile_pic: req.profile_pic,
+        tag: req.tag,
+        status: 'incoming'
+      })) || [],
+      outgoing_requests: result.outgoing_reqs?.map(req => ({
+        id: req.id,
+        username: req.username,
+        profile_pic: req.profile_pic,
+        tag: req.tag,
+        status: 'outgoing'
+      })) || [],
+      friends: result.friends || [],
+      blocked: result.blocked || [],
+      servers: result.servers || []
+    };
+
+    res.status(200).json(response);
+  } catch (error) {
+    console.error('Error in /user_relations:', error);
+    res.status(500).json({ message: 'Internal server error', status: 500 });
+  }
+});
 
 app.post('/process_req', async function (req, res) {
   const { message, friend_data } = req.body

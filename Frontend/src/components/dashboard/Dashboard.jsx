@@ -1,136 +1,157 @@
-import React, { useEffect , useState} from 'react'
-import dashboardcss from '../dashboard/dashboard.module.css'
-import Navbar from '../navbar/Navbar'
-import Navbar_2 from '../navbar_2/Navbar_2';
-import Top_nav from '../top_nav/Top_nav'
-import Main from '../main/Main';
-import Right_nav from '../right_nav/Right_nav';
-import jwt from 'jwt-decode'
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { change_username,change_tag,option_profile_pic,option_user_id } from '../../Redux/user_creds_slice';
-import {server_existence} from '../../Redux/current_page'
+import jwt from 'jwt-decode';
 
+import dashboardcss from '../dashboard/dashboard.module.css';
+import Navbar from '../navbar/Navbar';
+import Navbar_2 from '../navbar_2/Navbar_2';
+import Top_nav from '../top_nav/Top_nav';
+import Main from '../main/Main';
+import Right_nav from '../right_nav/Right_nav';
 
-function Dashboard() { 
-  const dispatch = useDispatch()
-  const {server_id} = useParams();
-  const option_state = useSelector(state => state.selected_option.updated_options)
-  const url = process.env.REACT_APP_URL
-  const server_exists = useSelector(state => state.current_page.server_exists)
+import {
+  change_username,
+  change_tag,
+  option_profile_pic,
+  option_user_id
+} from '../../Redux/user_creds_slice';
+import { server_existence } from '../../Redux/current_page';
+import {
+  setIncomingReqs,
+  setOutgoingReqs,
+  setFriends,
+  setBlocked
+} from '../../Redux/user_relations_slice';
 
-  let token1 = localStorage.getItem('token')
-  let user_creds = jwt(token1);
-  const{username , tag, profile_pic,id} = user_creds
-  const [user_data, setuser_data] = useState({incoming_reqs:'', outgoing_reqs:'', friends:'' , servers:''})
-  const [status, setstatus] = useState({pending_status:false , online_status:false , all_friends_status:false , blocked_staus:false})
-  const [new_req, setnew_req] = useState(1)
+export default function Dashboard() {
+  const dispatch = useDispatch();
+  const { server_id } = useParams();
+  const option_state = useSelector(s => s.selected_option.updated_options);
+  const server_exists = useSelector(s => s.current_page.server_exists);
+  const url = process.env.REACT_APP_URL;
 
-  const new_req_recieved = (new_req_value) =>{
-    setnew_req(new_req+new_req_value)
+  // Decode user token once
+  const token = localStorage.getItem('token') || '{}';
+  const { username, tag, profile_pic, id } = jwt(token);
+
+  // Pull persisted Redux state
+  const incoming_reqs = useSelector(s => s.user_relations.incoming_reqs);
+  const outgoing_reqs = useSelector(s => s.user_relations.outgoing_reqs);
+  const friends       = useSelector(s => s.user_relations.friends);
+
+  // Local state
+  const [servers, setServers]     = useState([]);
+  const [grid_layout, setGridLayout] = useState('70px 250px auto auto 370px');
+  const [new_req, setNewReq]      = useState(1);
+  const [loading, setLoading]     = useState(true);
+
+  const new_req_received = delta => setNewReq(n => n + delta);
+
+  // 1) Fetch user relations & servers
+  useEffect(() => {
+    async function fetchRelations() {
+      try {
+        const res  = await fetch(`${url}/user_relations`, {
+          headers: {
+            'Content-Type': 'application/json',
+            'x-auth-token': localStorage.getItem('token')
+          }
+        });
+        const data = await res.json();
+        console.log('Dashboard - API response:', data);
+
+        // **Correct names** from API:
+        const {
+          incoming_requests  = [],
+          outgoing_requests  = [],
+          friends: apiFriends = [],
+          blocked: apiBlocked = [],
+          servers: apiServers  = []
+        } = data;
+
+        // Dispatch into Redux under your slice's field names:
+        dispatch(setIncomingReqs(incoming_requests));
+        dispatch(setOutgoingReqs(outgoing_requests));
+        dispatch(setFriends(apiFriends));
+        dispatch(setBlocked(apiBlocked));
+
+        setServers(apiServers);
+      } catch (err) {
+        console.error('Error loading relations:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchRelations();
+  }, [url, new_req, option_state, dispatch]);
+
+  // 2) Dispatch user credentials once
+  useEffect(() => {
+    dispatch(change_username(username));
+    dispatch(change_tag(tag));
+    dispatch(option_profile_pic(profile_pic));
+    dispatch(option_user_id(id));
+  }, [dispatch, username, tag, profile_pic, id]);
+
+  // 3) Adjust layout & server existence
+  useEffect(() => {
+    if (server_id === '@me' || !server_id) {
+      setGridLayout('70px 250px auto auto 370px');
+    } else {
+      const existsInList = servers.some(s => s.server_id === server_id);
+      dispatch(server_existence(existsInList));
+      setGridLayout(
+        existsInList
+          ? '70px 250px auto auto 300px'
+          : '70px 250px auto'
+      );
+    }
+  }, [server_id, servers, dispatch]);
+
+  if (loading) {
+    return <div className={dashboardcss.main}>Loading user data...</div>;
   }
 
-  const [grid_layout, setgrid_layout] = useState("70px 250px auto auto 370px")
-
-  useEffect(()=>{
-    user_relations()
-  },[new_req , option_state])
-
-  useEffect(()=>{
-    if(server_id=='@me' || server_id==undefined){
-      setgrid_layout("70px 250px auto auto 370px")
-    }
-    else{
-      if(server_exists==false){
-        setgrid_layout("70px 250px auto")
-      }
-      else{
-        setgrid_layout("70px 250px auto auto 300px")
-      }
-
-      let does_exists = false
-      if(server_id!='@me'){
-        for (let index = 0; index < user_data.servers.length; index++) {
-          if(server_id==user_data.servers[index].server_id){
-            does_exists = true
-          }
-        }
-      }
-      dispatch(server_existence(does_exists))
-    }
-  },[server_id,user_data.servers])
-
-  useEffect(()=>{
-    dispatch(change_username(username))
-    dispatch(change_tag(tag))
-    dispatch(option_profile_pic(profile_pic))
-    dispatch(option_user_id(id))
-  },[])
-
-  // this use effect will run once and after that it will run whenever there is some change in requests like accept or denied or something
-  
-    const user_relations = async() => {
-      const res = await fetch(`${url}/user_relations`,{
-          method:'GET',
-          headers:{
-              'Content-Type' : 'application/json',
-              'x-auth-token' : localStorage.getItem('token'),
-          },
-      })
-      const data = await res.json();
-      
-      const {incoming_reqs , outgoing_reqs , friends , servers} = data
-      let pending = incoming_reqs.length + outgoing_reqs.length
-      let status_2 = {pending_status:false , online_status:false , all_friends_status:false , blocked_staus:false}
-      // had to make an object inside because if i directly try to use setstate then it will change the values simultaneously as there are many conditions and usestate is not updated in one instant so the default value will be in it for the time being so it wont work
-  
-      if(pending != 0){
-        status_2 = {...status_2 , pending_status:true}
-      }
-      else{
-        status_2 = {...status_2 , pending_status:false}
-      }
-  
-      if(friends.length != 0){
-        status_2 = {...status_2 , all_friends_status:true}
-      }
-      else{
-        status_2 = {...status_2 , all_friends_status:false}
-      }
-  
-      setstatus(status_2)
-      setuser_data({incoming_reqs:incoming_reqs , outgoing_reqs:outgoing_reqs , friends:friends , servers:servers})
-     };
+  // Compute statuses to pass down
+  const pending_status     = incoming_reqs.length + outgoing_reqs.length > 0;
+  const all_friends_status = friends.length > 0;
 
   return (
-    <div className={dashboardcss.main} style={{"gridTemplateColumns":grid_layout}}>
-        <div className={dashboardcss.components} id={dashboardcss.component_1}><Navbar user_cred={{username:username , user_servers:user_data.servers}} new_req_recieved = {new_req_recieved} /></div>
-        <div className={dashboardcss.components} id={dashboardcss.component_2}><Navbar_2/></div>
-        {
-          server_exists==false && server_id!='@me'?
-          <div style={{gridArea: '1 / 3 / 6 / 6'}} className={dashboardcss.components} id={dashboardcss.component_4}><Main
-            user_relations={{
-            incoming_reqs:user_data.incoming_reqs,
-            outgoing_reqs:user_data.outgoing_reqs, 
-            friends:user_data.friends}}
+    <div className={dashboardcss.main} style={{ gridTemplateColumns: grid_layout }}>
+      <div className={dashboardcss.components} id={dashboardcss.component_1}>
+        <Navbar
+          user_cred={{ username, user_servers: servers }}
+          new_req_recieved={new_req_received}
+        />
+      </div>
+      <div className={dashboardcss.components} id={dashboardcss.component_2}>
+        <Navbar_2 />
+      </div>
+      {server_exists === false && server_id !== '@me' ? (
+        <div
+          className={dashboardcss.components}
+          id={dashboardcss.component_4}
+          style={{ gridArea: '1 / 3 / 6 / 6' }}
+        >
+          <Main user_relations={{ incoming_reqs, outgoing_reqs, friends }} />
+        </div>
+      ) : (
+        <>
+          <div className={dashboardcss.components} id={dashboardcss.component_3}>
+            <Top_nav
+              button_status={{ pending: pending_status, all_friends: all_friends_status }}
             />
           </div>
-          :
-          <>
-            <div className={dashboardcss.components} id={dashboardcss.component_3}><Top_nav button_status={{pending:status.pending_status , all_friends : status.all_friends_status}}/>
-            </div>
-            <div className={dashboardcss.components} id={dashboardcss.component_4}><Main
-              user_relations={{
-                incoming_reqs:user_data.incoming_reqs,
-                outgoing_reqs:user_data.outgoing_reqs, 
-                friends:user_data.friends}}
-              />
-            </div>
-            <div className={dashboardcss.components}  id={dashboardcss.component_5}><Right_nav/></div>
+          <div className={dashboardcss.components} id={dashboardcss.component_4}>
+            <Main user_relations={{ incoming_reqs, outgoing_reqs, friends }} />
+          </div>
+          <div className={dashboardcss.components} id={dashboardcss.component_5}>
+            <Right_nav />
+          </div>
         </>
-        }
+      )}
     </div>
-  )
+  );
 }
-
-export default Dashboard
