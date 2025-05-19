@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
-  username: String,
-  tag: String,
+  username: { type: String, required: true },
+  tag: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: String,
   profile_pic: String,
@@ -50,5 +50,6 @@ const userSchema = new mongoose.Schema({
     profile_pic: String
   }]
 });
+userSchema.index({ username: 1, tag: 1 }, { unique: true });
 
 module.exports = mongoose.model('discord_user', userSchema);

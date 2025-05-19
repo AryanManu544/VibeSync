@@ -70,7 +70,6 @@ export default function Dashboard() {
           servers: apiServers  = []
         } = data;
 
-        // Dispatch into Redux under your slice's field names:
         dispatch(setIncomingReqs(incoming_requests));
         dispatch(setOutgoingReqs(outgoing_requests));
         dispatch(setFriends(apiFriends));
@@ -87,7 +86,6 @@ export default function Dashboard() {
     fetchRelations();
   }, [url, new_req, option_state, dispatch]);
 
-  // 2) Dispatch user credentials once
   useEffect(() => {
     dispatch(change_username(username));
     dispatch(change_tag(tag));
@@ -95,7 +93,6 @@ export default function Dashboard() {
     dispatch(option_user_id(id));
   }, [dispatch, username, tag, profile_pic, id]);
 
-  // 3) Adjust layout & server existence
   useEffect(() => {
     if (server_id === '@me' || !server_id) {
       setGridLayout('70px 250px auto auto 370px');
@@ -114,7 +111,6 @@ export default function Dashboard() {
     return <div className={dashboardcss.main}>Loading user data...</div>;
   }
 
-  // Compute statuses to pass down
   const pending_status     = incoming_reqs.length + outgoing_reqs.length > 0;
   const all_friends_status = friends.length > 0;
 

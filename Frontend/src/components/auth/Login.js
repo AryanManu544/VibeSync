@@ -36,11 +36,6 @@ const Login = ({ showAlert }) => {
     }
   }, []);
 
-  // Debug logging for relations after they're set
-  useEffect(() => {
-    console.log("Current Redux relations state:", relations);
-  }, [relations]);
-
   const onChange = (e) => {
     const { name, value, type, checked } = e.target;
     setCredentials((prev) => ({
@@ -80,7 +75,6 @@ const Login = ({ showAlert }) => {
         return;
       }
 
-      // Save token & (optionally) credentials
       localStorage.setItem("token", token);
       if (credentials.remember) {
         localStorage.setItem("loginCreds", JSON.stringify(credentials));
@@ -88,14 +82,12 @@ const Login = ({ showAlert }) => {
         localStorage.removeItem("loginCreds");
       }
 
-      // Dispatch user info
       const user = body.user || {};
       dispatch(change_username(user.username));
       dispatch(change_tag(user.tag));
       dispatch(option_profile_pic(user.profile_pic));
       dispatch(option_user_id(user.id));
 
-      // Log relations data structure from login
       console.log("Relations data from login:", {
         incoming_reqs: user.incoming_reqs || [],
         outgoing_reqs: user.outgoing_reqs || [],

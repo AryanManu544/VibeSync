@@ -1,27 +1,24 @@
-const Username = require('../models/Username');
+const User = require('../models/User');
 
-function generateTag(count) {
-  const pad = '0000';
-  const str = count.toString();
-  return pad.substring(0, pad.length - str.length) + str;
+
+function randomNumericTag(digits = 4) {
+  const min = 10 ** (digits - 1);
+  const max = 10 ** digits - 1;
+  return String(Math.floor(min + Math.random() * (max - min + 1)));
 }
 
 async function isUsernameAvailable(username) {
-  const data = await Username.findOne({ name: username });
+  let tag;
+  let clash;
 
-  let count = 1;
-  if (!data) {
-    const newEntry = new Username({ name: username, count });
-    await newEntry.save();
-  } else {
-    count = data.count + 1;
-    await Username.updateOne({ name: username }, { $set: { count } });
-  }
+  do {
+    tag = randomNumericTag(4);
+    clash = await User.exists({ username, tag });
+  } while (clash);
 
-  return generateTag(count);
+  return tag;
 }
 
 module.exports = {
-  generateTag,
-  isUsernameAvailable
+  isUsernameAvailable,
 };
