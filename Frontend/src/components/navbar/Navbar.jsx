@@ -22,7 +22,6 @@ import {useDispatch } from 'react-redux'
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
 import {server_role} from '../../Redux/current_page'
-import uploadFileToBlob from '../azure-storage-blob.ts';
 
 
 function Navbar({new_req_recieved ,user_cred}) {
@@ -31,7 +30,10 @@ function Navbar({new_req_recieved ,user_cred}) {
   
   const{username , user_servers} = user_cred
   const [servers, setservers] = useState([{server_pic:'' , server_name:'' , server_id:''}])
-  
+const showAlert = (message, type) => {
+  alert(`${type.toUpperCase()}: ${message}`);
+};
+
   useEffect(()=>{
     setservers(user_servers)
   },[user_servers])
@@ -59,31 +61,42 @@ function Navbar({new_req_recieved ,user_cred}) {
     setnew_server_image(file)
   }
 
-  const create_server = async()=>{
+  const create_server = async () => {
+  if (!new_server_image) {
+    showAlert("Please select an image", "danger");
+    return;
+  }
 
-    let image_url = ''
-    if(new_server_image!=''){
-      const file_url = await uploadFileToBlob(new_server_image);
-      image_url = file_url
-    }
-    
-    
-    const res = await fetch(`${url}/create_server`,{
-      method:'POST',
-      headers:{
-          'Content-Type' : 'application/json',
-          'x-auth-token' : localStorage.getItem('token'),
+  const formData = new FormData();
+  formData.append("server_image", new_server_image);
+  // server_details must be a string in multipart
+  formData.append("server_details", JSON.stringify(server_details));
+
+  try {
+    const res = await fetch(`${url}/create_server`, {
+      method: "POST",
+      headers: {
+        "x-auth-token": localStorage.getItem("token"),
+        // no Content-Type: boundary is set automatically
       },
-        body:JSON.stringify({
-          server_details , server_image:image_url
-      }),
-  })
-  const data = await res.json();
-  if(data.status==200){
-    handleClose()
-    new_req_recieved(1)
+      body: formData,
+    });
+
+    const data = await res.json();
+    if (res.status === 201) {
+      handleClose();
+      new_req_recieved(1);
+      showAlert("Server created!", "success");
+    } else {
+      showAlert(data.message || "Failed to create server", "danger");
+    }
+  } catch (err) {
+    console.error("Create server error:", err);
+    showAlert("Server error", "danger");
+  } finally {
+    setsubmit_button({ create_button_state: false, back_button_state: false });
   }
-  }
+};
 
   function first_modal(){
     return(
