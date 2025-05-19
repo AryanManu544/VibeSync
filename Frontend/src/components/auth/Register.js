@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import defaultPic from "../../images/vibesync_logo_2.png";
 import "../../styles/Register.css";
-
-const DEFAULT_PIC_URL =
-  "https://chatgpt.com/s/m_682566fcb41c8191bf6fd3c679799069";
 
 const Register = ({ mode, showAlert }) => {
   const [credentials, setCredentials] = useState({
@@ -13,11 +11,11 @@ const Register = ({ mode, showAlert }) => {
     cpassword: "",
   });
   const [profileFile, setProfileFile] = useState(null);
-  const [previewSrc, setPreviewSrc] = useState(DEFAULT_PIC_URL);
+  const [previewSrc, setPreviewSrc] = useState(defaultPic);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const navigate = useNavigate();
 
-  // Dark/light theme + background image
   useEffect(() => {
     document.body.setAttribute("data-theme", mode);
     const bg = mode === "dark" ? "/assets/darkmode.jpg" : "/assets/lightmode.jpg";
@@ -31,16 +29,14 @@ const Register = ({ mode, showAlert }) => {
     });
   }, [mode]);
 
-  // Handle text inputs
   const onChange = (e) =>
     setCredentials({ ...credentials, [e.target.name]: e.target.value });
 
-  // When they pick a file, read it as Data URL for preview & later sending
   const onFileChange = (e) => {
     const file = e.target.files[0];
     if (!file) {
       setProfileFile(null);
-      setPreviewSrc(DEFAULT_PIC_URL);
+      setPreviewSrc(defaultPic);
       return;
     }
     setProfileFile(file);
@@ -51,25 +47,21 @@ const Register = ({ mode, showAlert }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isSubmitting) return;
     const { name, email, password, cpassword } = credentials;
 
     if (password !== cpassword) {
-      return showAlert("Passwords do not match", "danger");
+      showAlert("Passwords do not match", "danger");
+      return;
     }
     if (!name || !email || !password) {
-      return showAlert("Please fill out all fields", "danger");
+      showAlert("Please fill out all fields", "danger");
+      return;
     }
 
-    // Build your payload
-    const payload = {
-      username: name,
-      email,
-      password,
-      profile_pic: previewSrc, // either base64 data-URL or DEFAULT_PIC_URL
-    };
-
-    const API_BASE_URL =
-      process.env.REACT_APP_API_BASE_URL || "http://localhost:4000";
+    setIsSubmitting(true);
+    const payload = { username: name, email, password, profile_pic: previewSrc };
+    const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:4000";
 
     try {
       const res = await fetch(`${API_BASE_URL}/register`, {
@@ -79,17 +71,22 @@ const Register = ({ mode, showAlert }) => {
       });
       const json = await res.json();
 
-      if (json.authtoken) {
-        localStorage.setItem("token", json.authtoken);
+      if (res.status === 409) {
+        // Duplicate email error from server
+        showAlert(json.message || "Email already in use", "danger");
+      } else if (json.authtoken) {
+        // Successful registration
         showAlert("Account created successfully", "success");
-        navigate("/channel");
+        navigate("/login");
       } else {
-        const msg = json.message || "Invalid credentials";
-        showAlert(msg, "danger");
+        // Other errors
+        showAlert(json.message || "Registration failed", "danger");
       }
     } catch (err) {
       console.error("Registration error:", err);
-      showAlert("An error occurred", "danger");
+      showAlert("An unexpected error occurred", "danger");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -97,18 +94,19 @@ const Register = ({ mode, showAlert }) => {
     <div className="background">
       <div className={`register-container ${mode === "dark" ? "dark" : "light"}`}>
         <h2>Sign Up</h2>
-        {/* Preview + file input */}
+
         <div className="profile-preview">
           <img src={previewSrc} alt="Profile preview" className="preview-img" />
           <input type="file" accept="image/*" onChange={onFileChange} />
         </div>
+
         <form onSubmit={handleSubmit}>
           <div>
             <label htmlFor="name">Name</label>
             <input
               type="text"
-              name="name"
               id="name"
+              name="name"
               placeholder="Enter your name"
               value={credentials.name}
               onChange={onChange}
@@ -118,8 +116,8 @@ const Register = ({ mode, showAlert }) => {
             <label htmlFor="email">Email address</label>
             <input
               type="email"
-              name="email"
               id="email"
+              name="email"
               placeholder="Enter your email"
               value={credentials.email}
               onChange={onChange}
@@ -129,8 +127,8 @@ const Register = ({ mode, showAlert }) => {
             <label htmlFor="password">Password</label>
             <input
               type="password"
-              name="password"
               id="password"
+              name="password"
               placeholder="Enter your password"
               value={credentials.password}
               onChange={onChange}
@@ -140,14 +138,16 @@ const Register = ({ mode, showAlert }) => {
             <label htmlFor="cpassword">Confirm Password</label>
             <input
               type="password"
-              name="cpassword"
               id="cpassword"
+              name="cpassword"
               placeholder="Re-enter your password"
               value={credentials.cpassword}
               onChange={onChange}
             />
           </div>
-          <button type="submit">Sign Up</button>
+          <button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Signing Up..." : "Sign Up"}
+          </button>
         </form>
 
         <div className="text-center">
