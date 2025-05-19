@@ -5,7 +5,8 @@ const { createServerTemplate } = require('../utils/helpers');
 const mongoose = require('mongoose');
 
 exports.createServer = async (req, res) => {
-  const { server_details, server_image } = req.body;
+  const { server_details} = req.body;
+  const server_image = req.file;
   const { name, type, key, role } = server_details || {};
   const userId = req.userId;
 
