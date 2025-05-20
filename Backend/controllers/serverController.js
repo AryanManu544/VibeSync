@@ -5,15 +5,20 @@ const { createServerTemplate } = require('../utils/helpers');
 const mongoose = require('mongoose');
 
 exports.createServer = async (req, res) => {
-  const { server_details} = req.body;
   const server_image = req.file;
-  try {
-  server_details = JSON.parse(server_details);
-} catch (err) {
-  return res.status(400).json({ message: 'Invalid JSON in server_details' });
-}
-const { name, type, key, role } = server_details || {};
+  let rawDetails = req.body.server_details;
 
+  console.log("📨 Raw server_details:", rawDetails);
+
+  let server_details;
+  try {
+    server_details = JSON.parse(rawDetails);
+  } catch (err) {
+    console.error("❌ JSON parse error:", err.message);
+    return res.status(400).json({ message: 'Invalid JSON in server_details' });
+  }
+
+  const { name, type, key, role } = server_details || {};
   const userId = req.userId;
 
   if (!name || !type || !key || !role || !userId) {
@@ -38,10 +43,7 @@ const { name, type, key, role } = server_details || {};
       server_role: role
     };
 
-    await User.updateOne(
-      { _id: userId },
-      { $push: { servers: serverInfo } }
-    );
+    await User.updateOne({ _id: userId }, { $push: { servers: serverInfo } });
 
     res.status(200).json({ message: 'Server Created' });
 
