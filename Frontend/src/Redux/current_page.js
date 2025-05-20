@@ -37,7 +37,10 @@ const current_page = createSlice({
     change_page_id:   (state, action) => { state.page_id = action.payload; },
     change_page_name: (state, action) => { state.page_name = action.payload; },
     server_role:      (state, action) => { state.role = action.payload; },
-    server_existence: (state, action) => { state.server_exists = action.payload; }
+    server_existence: (state, action) => { state.server_exists = action.payload; },
+    server_members: (state, action) => {
+      state.members = action.payload;
+    },
   },
   extraReducers: builder => {
     builder
