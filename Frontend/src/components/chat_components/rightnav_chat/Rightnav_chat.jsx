@@ -1,37 +1,64 @@
-import React from 'react'
-import rightnav_chatcss from '../rightnav_chat/rightnav_chat.module.css'
-import { useSelector} from 'react-redux';
+import React from 'react';
+import rightnav_chatcss from '../rightnav_chat/rightnav_chat.module.css';
+import { useSelector } from 'react-redux';
 
-function Rightnav_chat() {
+const Rightnav_chat = () => {
+  const members = useSelector(state => state.current_page.members) || [];
 
-    const all_users = useSelector(state=>state.current_page.members)    
+  // Helper to get initials from a name
+  const getInitials = (name = '') => {
+    const parts = name.trim().split(' ');
+    if (parts.length === 0) return '';
+    if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+    return (
+      parts[0].charAt(0).toUpperCase() +
+      parts[parts.length - 1].charAt(0).toUpperCase()
+    );
+  };
 
   return (
     <div className={rightnav_chatcss.main_wrap}>
-
-    <div className={rightnav_chatcss.main}>
+      <div className={rightnav_chatcss.main}>
         <div className={rightnav_chatcss.members_length}>
-            ALL MEMBERS - {all_users.length}
+          ALL MEMBERS — {members.length}
         </div>
         <div className={rightnav_chatcss.members}>
-            {
-                
-                all_users.map((elem,key)=>{
-                    return(
-                        
-                        <div className={rightnav_chatcss.individual_member}>
-                                <img src={elem.user_profile_pic} alt="" />
-                                
-                                {elem.user_name}
-                            </div>
-                        )
-                    })
-            }
-        </div>
-    </div>
-    
-    </div>
-  )
-}
+          {members.map((member) => {
+            const {
+              user_id,
+              user_name = 'Unknown',
+              user_tag = '0000',
+              user_profile_pic = ''
+            } = member;
 
-export default Rightnav_chat
+            return (
+              <div key={user_id} className={rightnav_chatcss.individual_member}>
+                {user_profile_pic ? (
+                  <img
+                    src={user_profile_pic}
+                    alt={`${user_name} avatar`}
+                    className={rightnav_chatcss.avatar}
+                  />
+                ) : (
+                  <div className={rightnav_chatcss.avatarFallback}>
+                    {getInitials(user_name)}
+                  </div>
+                )}
+                <div className={rightnav_chatcss.memberInfo}>
+                  <span className={rightnav_chatcss.username}>
+                    {user_name}
+                  </span>
+                  <span className={rightnav_chatcss.tag}>
+                    #{user_tag}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Rightnav_chat;

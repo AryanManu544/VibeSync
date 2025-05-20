@@ -3,29 +3,37 @@ const Server   = require('../models/Server');
 const Chat     = require('../models/Chat');
 const User     = require('../models/User');
 
+// controllers/serverController.js
 exports.createServer = async (req, res) => {
   const { server_details: rawDetails } = req.body;
-  const file  = req.file;       // multer puts the uploaded file here
-  const userId = req.userId;    // from your auth middleware
+  const file   = req.file;
+  const userId = req.userId;
 
-  // 1) Parse and validate details
+  // 1) Parse JSON
   let details;
   try {
     details = JSON.parse(rawDetails);
   } catch (err) {
     return res.status(400).json({ message: 'Invalid JSON in server_details' });
   }
-
   const { name, type, key, role } = details;
   if (!name || !type || !key || !role) {
     return res.status(400).json({ message: 'Missing required server fields' });
   }
 
-  if (!mongoose.Types.ObjectId.isValid(userId)) {
-    return res.status(400).json({ message: 'Invalid user ID' });
+  // 2) Fetch the user record
+  let userData;
+  try {
+    userData = await User.findById(userId);
+    if (!userData) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'Error loading user' });
   }
 
-  // 2) Build the image data-URL (or leave blank)
+  // 3) Build image data-URL if provided
   let picDataUrl = '';
   if (file) {
     if (!file.mimetype.startsWith('image/')) {
@@ -36,27 +44,29 @@ exports.createServer = async (req, res) => {
   }
 
   try {
-    // 3) Create the server document
+    // 4) Create the server document
     const serverDoc = new Server({
       server_name: name,
-      server_pic:  picDataUrl,
-      users: [{
-        user_id:        userId,
-        user_name:      req.userName || 'Unknown',    // if you store the name in req
-        user_profile_pic: req.userPic || '',          // likewise
-        user_tag:       req.userTag || '',
-        user_role:      role
-      }],
-      categories: [],    // start empty, use your addCategory route to seed
+      server_pic: picDataUrl,
+      users: [
+        {
+          user_id:          userData._id.toString(),
+          user_name:        userData.username,       // <- real username
+          user_profile_pic: userData.profile_pic,    // <- real profile picture URL/data
+          user_tag:         userData.tag,            // <- real tag
+          user_role:        role
+        }
+      ],
+      categories: [],
       active:     true
     });
     await serverDoc.save();
 
-    // 4) Create the associated chat document
+    // 5) Create chat doc
     const chatDoc = new Chat({ server_id: serverDoc._id });
     await chatDoc.save();
 
-    // 5) Push summary onto the user
+    // 6) Push summary to the user's server list
     await User.updateOne(
       { _id: userId },
       {
@@ -71,12 +81,17 @@ exports.createServer = async (req, res) => {
       }
     );
 
-    return res.status(201).json({ message: 'Server created', server_id: serverDoc._id });
+    return res.status(201).json({
+      message:   'Server created',
+      server_id: serverDoc._id.toString()
+    });
+
   } catch (err) {
     console.error('❌ createServer error:', err);
     return res.status(500).json({ message: 'Internal server error' });
   }
 };
+
 
 exports.getServerInfo = async (req, res) => {
   const { server_id } = req.body;

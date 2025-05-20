@@ -32,3 +32,50 @@
     object-fit: contain;
 }
 
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 8px;
+}
+
+.avatarFallback {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #7289da;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  margin-right: 8px;
+}
+
+.individual_member {
+  display: flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.individual_member:hover {
+  background: rgba(79, 84, 92, 0.32);
+}
+
+.memberInfo {
+  display: flex;
+  align-items: baseline;
+}
+
+.username {
+  font-weight: 500;
+  margin-right: 4px;
+}
+
+.tag {
+  color: #72767d;
+  font-size: 0.9em;
+}
