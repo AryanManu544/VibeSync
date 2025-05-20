@@ -1,15 +1,15 @@
 // src/components/dashboard/Dashboard.jsx
 import React, { useEffect, useState } from 'react';
-import { useParams }                  from 'react-router-dom';
-import { useDispatch, useSelector }   from 'react-redux';
-import jwt                            from 'jwt-decode';
+import { useParams } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import jwt from 'jwt-decode';
 
-import dashboardcss                   from './dashboard.module.css';
-import Navbar                         from '../navbar/Navbar';
-import Navbar_2                       from '../navbar_2/Navbar_2';
-import Top_nav                        from '../top_nav/Top_nav';
-import Main                           from '../main/Main';
-import Right_nav                      from '../right_nav/Right_nav';
+import dashboardcss from './dashboard.module.css';
+import Navbar from '../navbar/Navbar';
+import Navbar_2 from '../navbar_2/Navbar_2';
+import Top_nav from '../top_nav/Top_nav';
+import Main from '../main/Main';
+import Right_nav from '../right_nav/Right_nav';
 
 import {
   change_username,
@@ -18,9 +18,9 @@ import {
   option_user_id
 } from '../../Redux/user_creds_slice';
 
-import { 
+import {
   server_existence,
-  server_members 
+  fetchServerInfo
 } from '../../Redux/current_page';
 
 import {
@@ -32,31 +32,38 @@ import {
 } from '../../Redux/user_relations_slice';
 
 export default function Dashboard() {
-  const dispatch     = useDispatch();
-  const { server_id }= useParams();
-  const url          = process.env.REACT_APP_URL;
+  const dispatch = useDispatch();
+  const { server_id } = useParams();
+  const url = process.env.REACT_APP_URL;
 
-  // decode once
-  const token        = localStorage.getItem('token') || '{}';
-  const { username, tag, profile_pic, id } = jwt(token);
+  // decode JWT token once
+  const token = localStorage.getItem('token') || '{}';
+  let decoded = {};
+  try {
+    decoded = jwt(token);
+  } catch (err) {
+    console.error('Invalid token:', err);
+  }
+  console.log('Decoded JWT:', decoded);
+  const { username, tag, profile_pic, id } = decoded;
 
   // Redux state
   const option_state = useSelector(s => s.selected_option.updated_options);
-  const incoming_reqs= useSelector(s => s.user_relations.incoming_reqs);
-  const outgoing_reqs= useSelector(s => s.user_relations.outgoing_reqs);
-  const friends      = useSelector(s => s.user_relations.friends);
-  const servers      = useSelector(s => s.user_relations.servers);
+  const incoming_reqs = useSelector(s => s.user_relations.incoming_reqs);
+  const outgoing_reqs = useSelector(s => s.user_relations.outgoing_reqs);
+  const friends = useSelector(s => s.user_relations.friends);
+  const servers = useSelector(s => s.user_relations.servers);
   const serverExists = useSelector(s => s.current_page.server_exists);
 
   // Local state
   const [gridLayout, setGridLayout] = useState('70px 250px auto auto 370px');
-  const [loading, setLoading]       = useState(true);
+  const [loading, setLoading] = useState(true);
 
   // 1️⃣ Load user relations & server list
   useEffect(() => {
     async function loadRelations() {
       try {
-        const res  = await fetch(`${url}/user_relations`, {
+        const res = await fetch(`${url}/user_relations`, {
           headers: {
             'Content-Type': 'application/json',
             'x-auth-token': token
@@ -64,12 +71,11 @@ export default function Dashboard() {
         });
         const data = await res.json();
 
-        dispatch(setIncomingReqs(data.incoming_requests  || []));
-        dispatch(setOutgoingReqs(data.outgoing_requests  || []));
-        dispatch(setFriends     (data.friends            || []));
-        dispatch(setBlocked     (data.blocked            || []));
+        dispatch(setIncomingReqs(data.incoming_requests || []));
+        dispatch(setOutgoingReqs(data.outgoing_requests || []));
+        dispatch(setFriends(data.friends || []));
+        dispatch(setBlocked(data.blocked || []));
         dispatch(setServers(data.servers || []));
-        dispatch({ type: 'user_relations/setServers', payload: data.servers || [] });
       } catch (err) {
         console.error('Error loading relations:', err);
       } finally {
@@ -79,14 +85,15 @@ export default function Dashboard() {
     loadRelations();
   }, [dispatch, url, option_state, token]);
 
+  // 2️⃣ Set user credentials in Redux
   useEffect(() => {
-    dispatch(change_username   (username));
-    dispatch(change_tag        (tag));
-    dispatch(option_profile_pic(profile_pic));
-    dispatch(option_user_id    (id));
+    if (username) dispatch(change_username(username));
+    if (tag) dispatch(change_tag(tag));
+    if (profile_pic) dispatch(option_profile_pic(profile_pic));
+    if (id) dispatch(option_user_id(id));
   }, [dispatch, username, tag, profile_pic, id]);
 
-  // 3️⃣ When server_id or servers change: set existence + fetch members
+  // 3️⃣ Handle server existence + load server members
   useEffect(() => {
     if (!server_id || server_id === '@me') {
       dispatch(server_existence(null));
@@ -104,29 +111,9 @@ export default function Dashboard() {
     );
 
     if (exists) {
-      // fetch full server info (including members)
-      (async () => {
-        try {
-          const res  = await fetch(`${url}/server_info`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'x-auth-token': token
-            },
-            body: JSON.stringify({ server_id })
-          });
-          const data = await res.json();
-          if (res.ok && Array.isArray(data.users)) {
-            dispatch(server_members(data.users));
-          } else {
-            console.error('Failed to fetch server members:', data.message);
-          }
-        } catch (err) {
-          console.error('Error fetching server_info:', err);
-        }
-      })();
+      dispatch(fetchServerInfo(server_id));
     }
-  }, [dispatch, server_id, servers, url, token]);
+  }, [dispatch, server_id, servers]);
 
   if (loading) {
     return (
@@ -136,7 +123,7 @@ export default function Dashboard() {
     );
   }
 
-  const pending  = incoming_reqs.length + outgoing_reqs.length > 0;
+  const pending = incoming_reqs.length + outgoing_reqs.length > 0;
   const hasFriends = friends.length > 0;
 
   return (

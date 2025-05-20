@@ -3,13 +3,11 @@ const Server   = require('../models/Server');
 const Chat     = require('../models/Chat');
 const User     = require('../models/User');
 
-// controllers/serverController.js
 exports.createServer = async (req, res) => {
   const { server_details: rawDetails } = req.body;
-  const file   = req.file;
-  const userId = req.userId;
+  const file  = req.file;         
+  const userId = req.userId;   
 
-  // 1) Parse JSON
   let details;
   try {
     details = JSON.parse(rawDetails);
@@ -21,7 +19,6 @@ exports.createServer = async (req, res) => {
     return res.status(400).json({ message: 'Missing required server fields' });
   }
 
-  // 2) Fetch the user record
   let userData;
   try {
     userData = await User.findById(userId);
@@ -29,11 +26,10 @@ exports.createServer = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: 'Error loading user' });
+    console.error('Error fetching user in createServer:', err);
+    return res.status(500).json({ message: 'Server error' });
   }
 
-  // 3) Build image data-URL if provided
   let picDataUrl = '';
   if (file) {
     if (!file.mimetype.startsWith('image/')) {
@@ -44,16 +40,15 @@ exports.createServer = async (req, res) => {
   }
 
   try {
-    // 4) Create the server document
     const serverDoc = new Server({
       server_name: name,
-      server_pic: picDataUrl,
+      server_pic:  picDataUrl || userData.profile_pic, // fallback if no upload
       users: [
         {
           user_id:          userData._id.toString(),
-          user_name:        userData.username,       // <- real username
-          user_profile_pic: userData.profile_pic,    // <- real profile picture URL/data
-          user_tag:         userData.tag,            // <- real tag
+          user_name:        userData.username,
+          user_profile_pic: userData.profile_pic,
+          user_tag:         userData.tag,
           user_role:        role
         }
       ],
@@ -62,11 +57,9 @@ exports.createServer = async (req, res) => {
     });
     await serverDoc.save();
 
-    // 5) Create chat doc
     const chatDoc = new Chat({ server_id: serverDoc._id });
     await chatDoc.save();
 
-    // 6) Push summary to the user's server list
     await User.updateOne(
       { _id: userId },
       {
@@ -85,13 +78,11 @@ exports.createServer = async (req, res) => {
       message:   'Server created',
       server_id: serverDoc._id.toString()
     });
-
   } catch (err) {
     console.error('❌ createServer error:', err);
     return res.status(500).json({ message: 'Internal server error' });
   }
 };
-
 
 exports.getServerInfo = async (req, res) => {
   const { server_id } = req.body;
@@ -105,8 +96,8 @@ exports.getServerInfo = async (req, res) => {
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: 'User not found' });
 
-    const allowed = user.servers.some(s => s.server_id === server_id);
-    if (!allowed) return res.status(403).json({ message: 'Unauthorized' });
+    const isMember = user.servers.some(s => s.server_id === server_id);
+    if (!isMember) return res.status(403).json({ message: 'Unauthorized' });
 
     const server = await Server.findById(server_id);
     if (!server) return res.status(404).json({ message: 'Server not found' });
