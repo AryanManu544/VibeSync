@@ -86,23 +86,45 @@ exports.createServer = async (req, res) => {
 
 exports.getServerInfo = async (req, res) => {
   const { server_id } = req.body;
-  const userId = req.userId;
+  const userId        = req.userId;
 
+  // 1) Validate ID
   if (!mongoose.Types.ObjectId.isValid(server_id)) {
     return res.status(400).json({ message: 'Invalid server ID' });
   }
 
   try {
+    // 2) Confirm the requester is a member
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: 'User not found' });
 
     const isMember = user.servers.some(s => s.server_id === server_id);
     if (!isMember) return res.status(403).json({ message: 'Unauthorized' });
 
-    const server = await Server.findById(server_id);
+    // 3) Fetch the raw server doc
+    const server = await Server.findById(server_id).lean();
     if (!server) return res.status(404).json({ message: 'Server not found' });
 
+    // 4) For each placeholder user, load real data
+    server.users = await Promise.all(
+      server.users.map(async (u) => {
+        const real = await User.findById(u.user_id).lean();
+        if (real) {
+          return {
+            ...u,
+            user_name:        real.username,
+            user_tag:         real.tag,
+            user_profile_pic: real.profile_pic
+          };
+        }
+        // if user was deleted, keep the placeholder
+        return u;
+      })
+    );
+
+    // 5) Send back the enriched server
     return res.status(200).json(server);
+
   } catch (err) {
     console.error('❌ getServerInfo error:', err);
     return res.status(500).json({ message: 'Internal server error' });
