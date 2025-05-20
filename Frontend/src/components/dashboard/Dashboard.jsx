@@ -27,7 +27,8 @@ import {
   setIncomingReqs,
   setOutgoingReqs,
   setFriends,
-  setBlocked
+  setBlocked,
+  setServers
 } from '../../Redux/user_relations_slice';
 
 export default function Dashboard() {
@@ -67,7 +68,7 @@ export default function Dashboard() {
         dispatch(setOutgoingReqs(data.outgoing_requests  || []));
         dispatch(setFriends     (data.friends            || []));
         dispatch(setBlocked     (data.blocked            || []));
-        // assume API also returns `servers`
+        dispatch(setServers(data.servers || []));
         dispatch({ type: 'user_relations/setServers', payload: data.servers || [] });
       } catch (err) {
         console.error('Error loading relations:', err);
@@ -78,7 +79,6 @@ export default function Dashboard() {
     loadRelations();
   }, [dispatch, url, option_state, token]);
 
-  // 2️⃣ Persist user creds into Redux
   useEffect(() => {
     dispatch(change_username   (username));
     dispatch(change_tag        (tag));

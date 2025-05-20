@@ -31,7 +31,8 @@ export const userRelationsSlice = createSlice({
     incoming_reqs: [],
     outgoing_reqs: [],
     blocked: [],
-    friends: []
+    friends: [],
+    servers: []   
   },
   reducers: {
     setIncomingReqs: (state, action) => {
@@ -57,7 +58,10 @@ export const userRelationsSlice = createSlice({
       state.outgoing_reqs = [];
       state.blocked = [];
       state.friends = [];
-    }
+    },
+    setServers:(s,a) => { 
+      s.servers = a.payload 
+    },
   }
 });
 
@@ -66,7 +70,8 @@ export const {
   setOutgoingReqs,
   setBlocked,
   setFriends,
-  clearRelations
+  clearRelations,
+  setServers
 } = userRelationsSlice.actions;
 
 export default userRelationsSlice.reducer;
