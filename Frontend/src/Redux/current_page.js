@@ -59,6 +59,7 @@ const current_page = createSlice({
 export const {
   change_page_id,
   change_page_name,
+  server_members,
   server_role,
   server_existence
 } = current_page.actions;
