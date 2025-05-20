@@ -1,15 +1,15 @@
-// src/components/dashboard/Dashboard.jsx
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import jwt from 'jwt-decode';
+import { useParams }                  from 'react-router-dom';
+import { useDispatch, useSelector }   from 'react-redux';
+import jwt                             from 'jwt-decode';
 
-import dashboardcss from './dashboard.module.css';
-import Navbar from '../navbar/Navbar';
-import Navbar_2 from '../navbar_2/Navbar_2';
-import Top_nav from '../top_nav/Top_nav';
-import Main from '../main/Main';
-import Right_nav from '../right_nav/Right_nav';
+import dashboardcss                    from './dashboard.module.css';
+import Navbar                          from '../navbar/Navbar';
+import Navbar_2                        from '../navbar_2/Navbar_2';
+import Top_nav                         from '../top_nav/Top_nav';
+import Main                            from '../main/Main';
+import Right_nav                       from '../right_nav/Right_nav';
+import Loading                         from '../Loading_page/Loading';
 
 import {
   change_username,
@@ -32,9 +32,9 @@ import {
 } from '../../Redux/user_relations_slice';
 
 export default function Dashboard() {
-  const dispatch = useDispatch();
-  const { server_id } = useParams();
-  const url = process.env.REACT_APP_URL;
+  const dispatch     = useDispatch();
+  const { server_id }= useParams();
+  const url          = process.env.REACT_APP_URL;
 
   // decode JWT token once
   const token = localStorage.getItem('token') || '{}';
@@ -44,20 +44,19 @@ export default function Dashboard() {
   } catch (err) {
     console.error('Invalid token:', err);
   }
-  console.log('Decoded JWT:', decoded);
   const { username, tag, profile_pic, id } = decoded;
 
   // Redux state
-  const option_state = useSelector(s => s.selected_option.updated_options);
-  const incoming_reqs = useSelector(s => s.user_relations.incoming_reqs);
-  const outgoing_reqs = useSelector(s => s.user_relations.outgoing_reqs);
-  const friends = useSelector(s => s.user_relations.friends);
-  const servers = useSelector(s => s.user_relations.servers);
-  const serverExists = useSelector(s => s.current_page.server_exists);
+  const option_state   = useSelector(s => s.selected_option.updated_options);
+  const incoming_reqs  = useSelector(s => s.user_relations.incoming_reqs);
+  const outgoing_reqs  = useSelector(s => s.user_relations.outgoing_reqs);
+  const friends        = useSelector(s => s.user_relations.friends);
+  const servers        = useSelector(s => s.user_relations.servers);
+  const serverExists   = useSelector(s => s.current_page.server_exists);
 
   // Local state
   const [gridLayout, setGridLayout] = useState('70px 250px auto auto 370px');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading]       = useState(true);
 
   // 1️⃣ Load user relations & server list
   useEffect(() => {
@@ -87,10 +86,10 @@ export default function Dashboard() {
 
   // 2️⃣ Set user credentials in Redux
   useEffect(() => {
-    if (username) dispatch(change_username(username));
-    if (tag) dispatch(change_tag(tag));
-    if (profile_pic) dispatch(option_profile_pic(profile_pic));
-    if (id) dispatch(option_user_id(id));
+    if (username)     dispatch(change_username(username));
+    if (tag)          dispatch(change_tag(tag));
+    if (profile_pic)  dispatch(option_profile_pic(profile_pic));
+    if (id)           dispatch(option_user_id(id));
   }, [dispatch, username, tag, profile_pic, id]);
 
   // 3️⃣ Handle server existence + load server members
@@ -115,15 +114,12 @@ export default function Dashboard() {
     }
   }, [dispatch, server_id, servers]);
 
+  // Show your custom Loading page while fetching
   if (loading) {
-    return (
-      <div className={dashboardcss.main}>
-        Loading user data…
-      </div>
-    );
+    return <Loading />;
   }
 
-  const pending = incoming_reqs.length + outgoing_reqs.length > 0;
+  const pending    = incoming_reqs.length + outgoing_reqs.length > 0;
   const hasFriends = friends.length > 0;
 
   return (
