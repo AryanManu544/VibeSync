@@ -1,144 +1,134 @@
-import React, { useEffect, useState } from 'react'
-import invitecss from '../Invite/invite.module.css'
-import logo from '../../images/vibesync_logo_2.png'
-import { useParams } from 'react-router-dom';
-import CircularProgress from '@mui/material/CircularProgress';
-import invalid_link_image from '../../images/invalid_invite.svg'
-import { useSelector} from 'react-redux';
-import jwt from 'jwt-decode'
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useParams, useNavigate }       from 'react-router-dom';
+import jwtDecode                         from 'jwt-decode';
+import CircularProgress                  from '@mui/material/CircularProgress';
 
-function Invite() {
-// had to use token here because redux get the values when dashboard component runs and it doesnt run when this route is fired
-let Navigate = useNavigate()
-let token1 = localStorage.getItem('token')
-let user_creds = jwt(token1);
-const{username , tag, profile_pic,id} = user_creds
+import invitecss                         from './invite.module.css';
+import logo                              from '../../images/vibesync_logo_2.png';
+import invalidLinkImg                    from '../../images/invalid_invite.svg';
 
-const {invite_link} = useParams();
-const url = process.env.REACT_APP_URL
-const [invite_details, setinvite_details] = useState(null)
-const [invalid_invite_link, setinvalid_invite_link] = useState(null)
+export default function Invite() {
+  const { invite_link } = useParams();
+  const navigate        = useNavigate();
+  const apiBase         = process.env.REACT_APP_URL;
 
-
-const accept_invite = async()=>{
-    const res = await fetch(`${API_BASE_URL}/invite/accept_invite`, {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'x-auth-token': localStorage.getItem('token')
-  },
-  body: JSON.stringify({ invite_code })
-});
-  const data = await res.json();
-  if(data.status==200||data.status==403){
-    console.log('going')
-    Navigate('/channels/@me')
+  let currentUser = {};
+  try {
+    currentUser = jwtDecode(localStorage.getItem('token') || '');
+  } catch {
+    currentUser = {};
   }
-  else{
-    console.log('something went wrong')
-  }
+  const { id: myUserId } = currentUser;
+
+  const [inviteDetails, setInviteDetails] = useState(null);
+  const [loadingInfo, setLoadingInfo]     = useState(true);
+  const [error, setError]                 = useState(null);
+  const [accepting, setAccepting]         = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch(`${apiBase}/invite/invite_link_info`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ invite_link })
+        });
+        if (!res.ok) {
+          if (res.status === 404) throw new Error('Invite not found');
+          throw new Error('Failed to load invite');
+        }
+        const data = await res.json();
+        setInviteDetails(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoadingInfo(false);
+      }
+    })();
+  }, [apiBase, invite_link]);
+
+  const handleAccept = async () => {
+    if (inviteDetails.inviter_id === myUserId) {
+      return navigate('/channels/@me');
+    }
+
+    setAccepting(true);
+    setError(null);
+    try {
+      const res = await fetch(`${apiBase}/invite/accept_invite`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-auth-token': localStorage.getItem('token')
+        },
+        body: JSON.stringify({ invite_code: invite_link })
+      });
+      if (!res.ok) {
+        const payload = await res.json().catch(() => ({}));
+        throw new Error(payload.message || 'Failed to accept invite');
+      }
+      // success → go to the new server
+      navigate(`/channels/${inviteDetails.server_id}`);
+    } catch (err) {
+      setError(err.message);
+      setAccepting(false);
+    }
+  };
+
+  // Loading spinner while fetching invite info
+  if (loadingInfo) {
+    return (
+      <div className={invitecss.main}>
+        <CircularProgress color="inherit" />
+        <p className={invitecss.message}>Loading invite…</p>
+      </div>
+    );
   }
 
-
-  const invite_link_info = async()=>{
-    const res = await fetch(`${url}/invite_link_info`,{
-      method:'POST',
-      headers:{
-          'Content-Type' : 'application/json',
-          'x-auth-token' : localStorage.getItem('token'),
-      },
-        body:JSON.stringify({
-            invite_link
-      }),
-  })
-  const data = await res.json();
-  if(data.status==200){
-    setinvite_details(data)
-    setinvalid_invite_link(false)
-  }
-  else{
-    setinvalid_invite_link(true)
-  }
+  // Show error if invite invalid
+  if (error || !inviteDetails) {
+    return (
+      <div className={invitecss.main}>
+        <img src={invalidLinkImg} alt="Invalid invite" className={invitecss.invalidImage} />
+        <h2 className={invitecss.errorTitle}>Invite Invalid</h2>
+        <p className={invitecss.errorText}>
+          {error ||
+            'This invite may be expired or you might not have permission to join.'}
+        </p>
+        <button
+          className={invitecss.continueButton}
+          onClick={() => navigate('/')}
+        >
+          Continue to VibeSync
+        </button>
+      </div>
+    );
   }
 
-  useEffect(()=>{
-    invite_link_info()
-  },[])
-
+  // Destructure invite details
+  const { inviter_name, server_name, server_pic } = inviteDetails;
 
   return (
-    <div id={invitecss.main}>
-        <div id={invitecss.invite_box}>
-
-    {
-        invalid_invite_link==null
-        ?
-        <CircularProgress />
-        :
-        invalid_invite_link==false?
-            invite_details==null
-            ?
-            <CircularProgress />
-            :
-                <>
-                <div className={`${invitecss.invite_box_comps} ${invitecss.logo}`} id={invitecss.comp_1}><img src={logo} alt="" /></div>
-                <div className={invitecss.invite_box_comps} id={invitecss.comp_2}>{invite_details.inviter_name} invited you to join</div>
-                <div className={invitecss.invite_box_comps} id={invitecss.comp_3}>
-                    <div className={invitecss.server_details} id={invitecss.server_icon}>
-                        {
-                            invite_details.server_pic==''?
-                            invite_details.server_name[0]
-                            :
-                            <img className={invitecss.actual_image} src={invite_details.server_pic} alt="" />
-                        }
-                    </div>
-                    <div className={invitecss.server_details}>{invite_details.server_name}</div>
-                </div>
-                <div className={invitecss.invite_box_comps} id={invitecss.comp_4}>
-                    <div className={invitecss.server_member_details}>
-                        <div className={invitecss.dot_wrap}>
-                            <div className={invitecss.dot} style={{background:'#3BA55D'}}>
-
-                            </div>
-                        </div>
-                        <div id={invitecss.online}>1 Online</div>
-                    </div>
-
-                    <div className={invitecss.server_member_details}>
-                        <div className={invitecss.dot_wrap}>
-                            <div className={invitecss.dot} style={{background:'#B9BBBE'}}>     
-                            </div>
-                        </div>
-                        <div id={invitecss.members}>1 Member</div>
-                    </div>
-                </div>
-                <div className={invitecss.invite_box_comps} id={invitecss.comp_5}>
-                    <button id={invitecss.accept_button} onClick={()=>{
-                         if(invite_details.inviter_id == id){
-                            Navigate('/channels/@me')
-                        } 
-                        else(accept_invite())
-                        }   
-                        }>Accept Invite</button>
-                </div>
-            </>
-           
-        :
-        <>
-        <div className={invitecss.invite_box_comps}><img src={invalid_link_image} alt="" /></div>
-        <div className={invitecss.invite_box_comps} id={invitecss.invalid_link_comp_2}>Invite Invalid</div>
-        <div className={invitecss.invite_box_comps} id={invitecss.invalid_link_comp_3}>This invite may be expired or you might not have permission to join.</div>
-        <div className={invitecss.invite_box_comps}>
-            <button id={invitecss.continue_button}>Continue to VibeSync</button>
+    <div className={invitecss.main}>
+      <div className={invitecss.box}>
+        <div className={invitecss.logoWrapper}>
+          <img src={server_pic || logo} alt="Server" className={invitecss.logo} />
         </div>
-        </>
-    
-    }
-     </div>
-    </div>
-    
-  )
-}
+        <h2 className={invitecss.title}>
+          {inviter_name} invited you to join{' '}
+          <strong>{server_name}</strong>
+        </h2>
 
-export default Invite
+        <button
+          className={invitecss.acceptButton}
+          onClick={handleAccept}
+          disabled={accepting}
+        >
+          {accepting
+            ? <CircularProgress size={20} color="inherit" />
+            : 'Accept Invite'}
+        </button>
+      </div>
+    </div>
+  );
+}
