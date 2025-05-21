@@ -28,7 +28,7 @@ export default function Invite() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch(`${apiBase}/invite/invite_link_info`, {
+        const res = await fetch(`${apiBase}/invite_link_info`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ invite_link })
