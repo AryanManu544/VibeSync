@@ -22,16 +22,14 @@ const [invalid_invite_link, setinvalid_invite_link] = useState(null)
 
 
 const accept_invite = async()=>{
-    const res = await fetch(`${url}/accept_invite`,{
-      method:'POST',
-      headers:{
-          'Content-Type' : 'application/json',
-          'x-auth-token' : localStorage.getItem('token'),
-      },
-        body:JSON.stringify({
-            user_details:{username , tag, profile_pic , id} , server_details:{invite_details}
-      }),
-  })
+    const res = await fetch(`${API_BASE_URL}/invite/accept_invite`, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'x-auth-token': localStorage.getItem('token')
+  },
+  body: JSON.stringify({ invite_code })
+});
   const data = await res.json();
   if(data.status==200||data.status==403){
     console.log('going')
