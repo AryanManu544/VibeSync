@@ -17,7 +17,7 @@ const serverSchema = new mongoose.Schema({
       channel_type: String
     }]
   }],
-  active: Boolean // false when server is deleted
+  active: Boolean 
 });
 
 module.exports = mongoose.model('discord_server', serverSchema);

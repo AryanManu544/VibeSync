@@ -1,6 +1,8 @@
 const Invite = require('../models/Invite');
 const User = require('../models/User');
 const shortid = require('shortid');
+const Server = require('../models/Server');  
+const mongoose = require('mongoose');
 
 exports.createInvite = async (req, res) => {
   const { inviter_name, inviter_id, server_name, server_id, server_pic } = req.body;
@@ -57,4 +59,58 @@ exports.getInviteInfo = async (req, res) => {
 
   const { inviter_name, server_name, server_pic, server_id, inviter_id } = data;
   return res.json({ status: 200, inviter_name, server_name, server_pic, server_id, inviter_id });
+};
+
+exports.acceptInvite = async (req, res) => {
+  const { invite_code } = req.body;
+  const userId = req.userId;                // from your auth middleware
+
+  const invite = await Invite.findOne({ invite_code });
+  if (!invite) {
+    return res.status(404).json({ status: 404, message: 'Invite not found' });
+  }
+
+  const alreadyMember = await Server.exists({
+    _id: invite.server_id,
+    'users.user_id': userId
+  });
+  if (alreadyMember) {
+    return res.status(400).json({ status: 400, message: 'Already a member' });
+  }
+
+  const user = await User.findById(userId).lean();
+  if (!user) {
+    return res.status(404).json({ status: 404, message: 'User not found' });
+  }
+
+  await Server.updateOne(
+    { _id: invite.server_id },
+    {
+      $push: {
+        users: {
+          user_id:          user._id.toString(),
+          user_name:        user.username,
+          user_profile_pic: user.profile_pic,
+          user_tag:         user.tag,
+          user_role:        'member'    
+        }
+      }
+    }
+  );
+
+  await User.updateOne(
+    { _id: userId },
+    {
+      $push: {
+        servers: {
+          server_id:   invite.server_id,
+          server_name: invite.server_name,
+          server_pic:  invite.server_pic,
+          server_role: 'member'
+        }
+      }
+    }
+  );
+
+  return res.json({ status: 200, message: 'Joined server successfully' });
 };
