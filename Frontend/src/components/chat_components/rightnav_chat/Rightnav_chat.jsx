@@ -8,7 +8,6 @@ export default function Rightnav_chat() {
   const entireState = useSelector(state => state);
   console.log('⚛️ Entire Redux state:', entireState);
 
-  // Try selecting members from the most likely path
   let members = [];
   if (entireState.current_page && Array.isArray(entireState.current_page.members)) {
     members = entireState.current_page.members;
