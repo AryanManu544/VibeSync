@@ -51,7 +51,7 @@ function Invite() {
   // accept invite
   const accept_invite = async () => {
     try {
-      const res = await fetch(`${url}/accept_invite`, {
+      const res = await fetch(`${url}/invite/accept_invite`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
