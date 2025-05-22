@@ -48,30 +48,26 @@ function Invite() {
     invite_link_info();
   }, []);
 
-  // accept invite
   const accept_invite = async () => {
-    try {
-      const res = await fetch(`${url}/invite/accept_invite`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-auth-token': token,
-        },
-        body: JSON.stringify({
-          user_details: { username, tag, profile_pic, id },
-          server_details: invite_details,
-        }),
-      });
-      const data = await res.json();
-      if (data.status === 200 || data.status === 403) {
-        navigate('/channels/@me');
-      } else {
-        console.log('something went wrong');
-      }
-    } catch (err) {
-      console.log('something went wrong', err);
+  try {
+    const res = await fetch(`${url}/invite/accept_invite`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-auth-token': token,
+      },
+      body: JSON.stringify({ invite_code: invite_link }),
+    });
+    const data = await res.json();
+    if (data.status === 200 || data.status === 403) {
+      navigate('/channels/@me');
+    } else {
+      console.log('something went wrong');
     }
-  };
+  } catch (err) {
+    console.log('something went wrong', err);
+  }
+};
 
   return (
     <div id={invitecss.main}>
