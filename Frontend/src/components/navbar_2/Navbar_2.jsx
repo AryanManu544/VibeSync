@@ -10,7 +10,7 @@ import HeadsetIcon        from '@mui/icons-material/Headset';
 import MicOffIcon         from '@mui/icons-material/MicOff';
 import Navbar2_dashboard  from '../dashboard_components/navbar2_dashboard/Navbar2_dashboard';
 import Navbar2_chat       from '../chat_components/navbar_2_chat/Navbar2_chat';
-import SettingsModal      from '../settings/SettingsModal';
+import SettingsModal      from '../settingpage/SettingsModal';
 
 export default function Navbar_2({ showAlert }) {
   const { server_id } = useParams();
