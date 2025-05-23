@@ -46,7 +46,7 @@ exports.update_picture = async (req, res) => {
 
     // Convert buffer to Base64 data URL
     const mime = req.file.mimetype; // e.g. 'image/jpeg'
-    const b64  = req.file.buffer.toString('base64');
+    const b64 = req.file.buffer.toString('base64');
     const dataUrl = `data:${mime};base64,${b64}`;
 
     await User.findByIdAndUpdate(
@@ -73,6 +73,18 @@ exports.update_name = async (req, res) => {
       req.userId,
       { username: name.trim() },
       { new: true }
+    );
+    await Chat.updateMany(
+      { 'messages.user_id': req.userId },
+      {
+        $set: {
+          'messages.$[m].user_name': name,
+        }
+      },
+      {
+        arrayFilters: [{ 'm.user_id': req.userId }],
+        multi: true
+      }
     );
     return res.status(200).json({ message: 'Name updated' });
   } catch (err) {

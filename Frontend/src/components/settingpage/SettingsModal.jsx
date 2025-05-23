@@ -85,23 +85,23 @@ export default function SettingsModal({ show, onClose, showAlert }) {
     if (!picFile) return showAlert('Choose a picture', 'danger');
     const form = new FormData();
     form.append('profile_pic', picFile);
-    callApi('/user/update_picture', form, true);
+    callApi('/update_picture', form, true);
   };
 
   const submitName = () => {
     if (!name.trim()) return showAlert('Name cannot be empty', 'danger');
-    callApi('/user/update_name', { name });
+    callApi('/update_name', { name });
   };
 
   const submitEmail = () => {
     if (!email.trim()) return showAlert('Email cannot be empty', 'danger');
-    callApi('/user/update_email', { email });
+    callApi('/update_email', { email });
   };
 
   const submitPassword = () => {
     if (!currentPwd || !newPwd) return showAlert('Fill both fields', 'danger');
     if (newPwd !== confirmPwd) return showAlert('Passwords do not match', 'danger');
-    callApi('/user/update_password', { currentPwd, newPwd });
+    callApi('/update_password', { currentPwd, newPwd });
   };
 
   if (!show) return null;
