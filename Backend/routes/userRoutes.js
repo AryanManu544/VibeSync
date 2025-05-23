@@ -22,7 +22,7 @@ router.get('/get_friends', auth, async (req, res) => {
     return res.status(500).json({ message: 'Server error' });
   }
 });
-router.put('/update_picture',  auth, upload.single('profile_pic'), ctrl.update_picture);
+router.put('/update_picture',  auth, upload.single('profile_pic'), userController.update_picture);
 router.put('/update_name',     auth, userController.update_name);
 router.put('/update_email',    auth, userController.update_email);
 router.put('/update_password', auth, userController.update_password);
