@@ -21,6 +21,7 @@
   justify-content: space-between;
   padding: 0.75rem 1rem;
   border-bottom: 1px solid #ddd;
+  background-color: #370b8e;
 }
 .sm-close {
   background: none;
@@ -39,15 +40,17 @@
   border: none;
   cursor: pointer;
   transition: background 0.2s;
+  background-color: #370b8e;
 }
 .sm-tabs button.active,
 .sm-tabs button:hover {
-  background: #f0f0f0;
+  background: #6440b9;
 }
 .sm-content {
   padding: 1rem;
   display: flex;
   flex-direction: column;
+  background-color: #370b8e;
 }
 .sm-content label {
   margin-top: 0.5rem;
@@ -60,11 +63,12 @@
   padding: 0.5rem;
   width: 100%;
   box-sizing: border-box;
+  background-color: #6440b9;
 }
 .sm-content button {
   align-self: flex-end;
   padding: 0.5rem 1rem;
-  background: #5865F2;
+  background: #6440b9;
   color: #fff;
   border: none;
   border-radius: 4px;
