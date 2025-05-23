@@ -1,0 +1,86 @@
+.sm-backdrop {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.sm-modal {
+  background: #fff;
+  width: 400px;
+  max-width: 90%;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+.sm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #ddd;
+}
+.sm-close {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+}
+.sm-tabs {
+  display: flex;
+  border-bottom: 1px solid #ddd;
+}
+.sm-tabs button {
+  flex: 1;
+  padding: 0.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.sm-tabs button.active,
+.sm-tabs button:hover {
+  background: #f0f0f0;
+}
+.sm-content {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+.sm-content label {
+  margin-top: 0.5rem;
+}
+.sm-content input[type="text"],
+.sm-content input[type="email"],
+.sm-content input[type="password"],
+.sm-content input[type="file"] {
+  margin: 0.5rem 0 1rem;
+  padding: 0.5rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+.sm-content button {
+  align-self: flex-end;
+  padding: 0.5rem 1rem;
+  background: #5865F2;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.sm-content button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.sm-pic-preview {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+.sm-pic-preview img {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 50%;
+}
