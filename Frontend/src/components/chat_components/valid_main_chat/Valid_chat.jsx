@@ -120,27 +120,69 @@ function Valid_chat() {
     setlatest_message(message_data);
   });
 
-  const handleEdit = timestamp => {
+  const handleEdit = async (timestamp) => {
     const target = all_messages.find(m => m.timestamp === timestamp);
     if (!target) return;
+
     const newContent = window.prompt('Edit your message:', target.content);
     if (!newContent || newContent === target.content) return;
 
-    // Update locally (optional: send to backend)
-    setall_messages(prev =>
-      prev.map(m =>
-        m.timestamp === timestamp
-          ? { ...m, content: newContent, edited: true }
-          : m
-      )
-    );
+    try {
+      const res = await fetch(`${url}/edit_message`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-auth-token': localStorage.getItem('token')
+        },
+        body: JSON.stringify({ channel_id, timestamp, new_message: newContent })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.status === 200) {
+        setall_messages(prev =>
+          prev.map(m =>
+            m.timestamp === timestamp
+              ? { ...m, content: newContent, edited: true }
+              : m
+          )
+        );
+      } else {
+        console.error('Edit failed:', data.message);
+        alert(data.message || 'Failed to edit message');
+      }
+    } catch (error) {
+      console.error('Error editing message:', error);
+      alert('Error editing message');
+    }
   };
 
-  const handleDelete = timestamp => {
+
+  const handleDelete = async (timestamp) => {
     if (!window.confirm('Delete this message?')) return;
-    setall_messages(prev => prev.filter(m => m.timestamp !== timestamp));
-    // Optional: send delete request to backend
+
+    try {
+      const res = await fetch(`${url}/delete_message`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-auth-token': localStorage.getItem('token')
+        },
+        body: JSON.stringify({ channel_id, timestamp })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.status === 200) {
+        setall_messages(prev => prev.filter(m => m.timestamp !== timestamp));
+      } else {
+        console.error('Delete failed:', data.message);
+        alert(data.message || 'Failed to delete message');
+      }
+    } catch (error) {
+      console.error('Error deleting message:', error);
+      alert('Error deleting message');
+    }
   };
+
 
   return (
     <div className={valid_chat_css.mainchat}>
