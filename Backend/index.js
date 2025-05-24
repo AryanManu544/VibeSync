@@ -3,15 +3,31 @@ const http = require('http');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const { Server } = require('socket.io');
-const corsOptions = require('./config/corsOptions');
 const connectDB = require('./config/db');
 const routes = require('./routes');
 const { setupSocket } = require('./socket');
 
 dotenv.config();
 
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://vibe-sync-glqp.vercel.app'
+];
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+};
+
 const app = express();
 const server = http.createServer(app);
+
 const io = new Server(server, {
   cors: {
     origin: allowedOrigins,
