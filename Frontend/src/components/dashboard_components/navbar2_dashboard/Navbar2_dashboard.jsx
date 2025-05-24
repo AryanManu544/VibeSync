@@ -12,7 +12,6 @@ import CreateDMModal from '../../dmpage/CreateDMModal';
 import { setActiveDM } from '../../../Redux/active_dm_slice';
 import { ListGroup, Image } from 'react-bootstrap';
 
-
 export default function Navbar_2_dashboard() {
   const dispatch = useDispatch();
   const profile_pic = useSelector(state => state.user_info.profile_pic);
@@ -22,72 +21,59 @@ export default function Navbar_2_dashboard() {
 
   const base = process.env.REACT_APP_API_BASE_URL || 'http://localhost:4000';
 
-  // A default test DM
-  const testDM = { id: '1', name: 'test', profile_pic: profile_pic_default, tag: 'test' };
+  const testDM = { id: '1', name: 'Test User', profile_pic: profile_pic_default, tag: 'test' };
 
-  // Fetch existing DMs on mount, include test DM
   useEffect(() => {
-  const fetchDMs = async () => {
-    const token = localStorage.getItem('token');
-    try {
-      // 1. Fetch the DM list
-      const res = await fetch(`${base}/get_dms`, {
-        headers: { 'x-auth-token': token }
-      });
-      const data = await res.json();
-      
-      // 2. Fetch user details for each DM
-      const dmPromises = (data.dms || []).map(async dm => {
-        try {
-          const userRes = await fetch(`${base}/get_user_by_id`, {
-            method: 'POST',
-            headers: { 
-              'Content-Type': 'application/json',
-              'x-auth-token': token 
-            },
-            body: JSON.stringify({ id: dm.id })
-          });
-          const userData = await userRes.json();
-          
-          return {
-            id: dm.id,
-            name: userData.user?.username || userData.user?.name || dm.tag,
-            profile_pic: userData.user?.profile_pic || dm.profile_pic || profile_pic_default,
-            tag: dm.tag || '0000'
-          };
-        } catch (err) {
-          console.error(`Failed to fetch user ${dm.id}:`, err);
-          return {
-            id: dm.id,
-            name: dm.tag,
-            profile_pic: dm.profile_pic || profile_pic_default,
-            tag: dm.tag || '0000'
-          };
-        }
-      });
+    const fetchDMs = async () => {
+      const token = localStorage.getItem('token');
+      try {
+        const res = await fetch(`${base}/get_dms`, {
+          headers: { 'x-auth-token': token }
+        });
+        const data = await res.json();
 
-      // 3. Wait for all user details to load
-      const processedDMs = await Promise.all(dmPromises);
+        const dmPromises = (data.dms || []).map(async dm => {
+          try {
+            const userRes = await fetch(`${base}/get_user_by_id`, {
+              method: 'POST',
+              headers: { 
+                'Content-Type': 'application/json',
+                'x-auth-token': token 
+              },
+              body: JSON.stringify({ id: dm.id })
+            });
+            const userData = await userRes.json();
 
-      // 4. Add test DM if needed
-      setDmList([{
-        id: '1',
-        name: 'Test User',
-        profile_pic: profile_pic_default,
-        tag: 'test'
-      }, ...processedDMs]);
-    } catch (err) {
-      console.error('Failed to fetch DMs:', err);
-      setDmList([{
-        id: '1',
-        name: 'Test User',
-        profile_pic: profile_pic_default,
-        tag: 'test'
-      }]);
-    }
-  };
-  fetchDMs();
-}, []);
+            return {
+              id: dm.id,
+              name: userData.user?.username || userData.user?.name || dm.tag,
+              profile_pic: userData.user?.profile_pic || dm.profile_pic || profile_pic_default,
+              tag: userData.user?.tag || dm.tag || '0000'
+            };
+          } catch (err) {
+            console.error(`Failed to fetch user ${dm.id}:`, err);
+            return {
+              id: dm.id,
+              name: dm.tag,
+              profile_pic: dm.profile_pic || profile_pic_default,
+              tag: dm.tag || '0000'
+            };
+          }
+        });
+
+        const processedDMs = await Promise.all(dmPromises);
+
+        setDmList([
+          testDM,
+          ...processedDMs
+        ]);
+      } catch (err) {
+        console.error('Failed to fetch DMs:', err);
+        setDmList([testDM]);
+      }
+    };
+    fetchDMs();
+  }, []);
 
   const renderTooltip = props => (
     <Tooltip id="button-tooltip" {...props}>
@@ -97,13 +83,11 @@ export default function Navbar_2_dashboard() {
 
   const onPlusClick = () => setShowCreateDM(true);
 
-  // Create DM and add to list
   const handleCreateDM = async selectedIds => {
     if (!selectedIds.length) return;
     const peerId = selectedIds[0];
     const token = localStorage.getItem('token');
 
-    // 1. Create DM
     const createRes = await fetch(`${base}/create_dm`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-auth-token': token },
@@ -111,27 +95,38 @@ export default function Navbar_2_dashboard() {
     });
     if (!createRes.ok) return console.error('create_dm failed');
 
-    // 2. Fetch peer info
     const userRes = await fetch(`${base}/get_user_by_id`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-auth-token': token },
       body: JSON.stringify({ id: peerId })
     });
     if (!userRes.ok) return console.error('get_user_by_id failed');
-    const { status, user } = await userRes.json();
-    if (status !== 200 || !user) return console.error('bad user data');
 
-    // 3. Update Redux and sidebar list
-    dispatch(setActiveDM({ id: user.id, name: user.name, profile_pic: user.profile_pic || profile_pic_default, tag: user.tag }));
+    const { user } = await userRes.json();
+    if (!user) return console.error('bad user data');
+
+    const formattedUser = {
+      id: user.id,
+      name: user.name || user.username || 'Unknown',
+      profile_pic: user.profile_pic || profile_pic_default,
+      tag: user.tag || '0000'
+    };
+
+    dispatch(setActiveDM(formattedUser));
     setDmList(prev => {
-      const combined = [testDM, ...prev, user];
+      const combined = [testDM, ...prev, formattedUser];
       return combined.filter((u, idx) => combined.findIndex(x => x.id === u.id) === idx);
     });
     setShowCreateDM(false);
   };
 
   const handleUserClick = user => {
-    dispatch(setActiveDM({ id: user.id, name: user.name, profile_pic: user.profile_pic || profile_pic_default, tag: user.tag }));
+    dispatch(setActiveDM({
+      id: user.id,
+      name: user.name,
+      profile_pic: user.profile_pic || profile_pic_default,
+      tag: user.tag
+    }));
   };
 
   return (
@@ -160,35 +155,39 @@ export default function Navbar_2_dashboard() {
         <ListGroup variant="flush" className={navbar_chat_css.dm_list}>
           {dmList.map(user => (
             <ListGroup.Item
-  key={user.id}
-  action
-  className={`${navbar_chat_css.dm_item} d-flex align-items-center w-100`}
-  onClick={() => handleUserClick(user)}
->
-  <Image
-    src={user.profile_pic}
-    roundedCircle
-    width={32}
-    height={32}
-    className={`me-2 ${navbar_chat_css.dm_image}`}
-    onError={(e) => {
-      e.target.src = profile_pic_default;
-    }}
-  />
-  <div className={`${navbar_chat_css.dm_text_container}`}>
-    <span className={`${navbar_chat_css.dm_name}`}>
-      {user.name || `User ${user.tag}`}
-    </span>
-    <span className={`${navbar_chat_css.dm_tag}`}>
-      #{user.tag}
-    </span>
-  </div>
-</ListGroup.Item>
+              key={user.id}
+              action
+              className={`${navbar_chat_css.dm_item} d-flex align-items-center w-100`}
+              onClick={() => handleUserClick(user)}
+            >
+              <Image
+                src={user.profile_pic}
+                roundedCircle
+                width={32}
+                height={32}
+                className={`me-2 ${navbar_chat_css.dm_image}`}
+                onError={(e) => {
+                  e.target.src = profile_pic_default;
+                }}
+              />
+              <div className={`${navbar_chat_css.dm_text_container}`}>
+                <span className={`${navbar_chat_css.dm_name}`}>
+                  {user.name || `User ${user.tag}`}
+                </span>
+                <span className={`${navbar_chat_css.dm_tag}`}>
+                  #{user.tag}
+                </span>
+              </div>
+            </ListGroup.Item>
           ))}
         </ListGroup>
       </div>
 
-      <CreateDMModal show={showCreateDM} handleClose={() => setShowCreateDM(false)} onCreateDM={handleCreateDM} />
+      <CreateDMModal
+        show={showCreateDM}
+        handleClose={() => setShowCreateDM(false)}
+        onCreateDM={handleCreateDM}
+      />
     </>
   );
 }

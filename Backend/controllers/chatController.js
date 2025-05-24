@@ -69,3 +69,53 @@ exports.getMessages = async (req, res) => {
 
   return res.json({ chats: data[0].channels[0].chat_details });
 };
+
+exports.delete_message = async (req, res) => {
+  const { channel_id, timestamp } = req.body;
+  const userId = req.user.id;
+
+  try {
+    const deleted = await Chat.findOneAndDelete({
+      channel_id,
+      timestamp,
+      sender_id: userId
+    });
+
+    if (!deleted) {
+      return res.status(404).json({ message: 'Message not found or not authorized' });
+    }
+
+    res.status(200).json({ message: 'Message deleted successfully' });
+  } catch (err) {
+    console.error('Error deleting message:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+exports.edit_message = async (req, res) => {
+  const { channel_id, timestamp, newContent } = req.body;
+  const userId = req.user.id;
+
+  try {
+    const message = await Chat.findOneAndUpdate(
+      {
+        channel_id,
+        timestamp,
+        sender_id: userId
+      },
+      {
+        $set: { content: newContent, edited: true }
+      },
+      { new: true }
+    );
+
+    if (!message) {
+      return res.status(404).json({ message: 'Message not found or not authorized' });
+    }
+
+    res.status(200).json({ message: 'Message edited successfully' });
+  } catch (err) {
+    console.error('Error editing message:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+};

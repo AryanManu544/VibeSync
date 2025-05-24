@@ -1,64 +1,138 @@
-/* src/components/DMPage/DMPage.module.css */
-.container {
-  display: flex;
-  height: 100%;
-}
-.sidebar {
-  width: 240px;
-  border-right: 1px solid #444;
-  display: flex;
-  flex-direction: column;
-}
-.header {
-  padding: 1rem;
-  font-weight: bold;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.addIcon {
-  cursor: pointer;
-  color: #bbb;
-}
-.list {
-  flex: 1;
-  overflow-y: auto;
-}
-.empty {
-  padding: 1rem;
-  color: #888;
-}
-.item {
-  display: flex;
-  align-items: center;
-  padding: 0.75rem 1rem;
-  cursor: pointer;
-}
-.item:hover, .active {
-  background: #555;
-}
-.avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  margin-right: 0.75rem;
-}
-.name {
-  flex: 1;
-  color: #eee;
-}
-.status {
-  width: 12px;
-  height: 12px;
-}
 .chatArea {
   flex: 1;
   display: flex;
   flex-direction: column;
   background-color: #520095;
 }
-.selectPrompt {
-  margin: auto;
-  color: #888;
+
+.topBar {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  border-bottom: 1px solid #444;
+}
+
+.peerAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 12px;
+}
+
+.peerName {
+  color: #fff;
   font-size: 1.1rem;
+}
+
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 24px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── Absolutely centered date label ─── */
+.dateHeaderAbsolute {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin: 16px 0;
+  color: #aaa;
+  font-size: 0.85rem;
+  pointer-events: none;
+}
+
+/* ─── Message bubbles ─── */
+.msgPeer, .msgMine {
+  margin-bottom: 12px;
+}
+
+.msgPeer {
+   align-self: flex-start;
+  background: #36393f;
+  color: #ddd;
+  margin-left: 32px; /* indent peer messages instead of all content */
+  border-radius: 8px;
+  max-width: 70%;
+}
+
+.msgMine {
+  align-self: flex-end;
+  background: #7252c6;
+  color: #fff;
+  margin-right: 32px; /* balance it out */
+  border-radius: 8px;
+  max-width: 70%;
+}
+
+.msgHeader {
+  display: flex;
+  align-items: center;
+  padding: 4px 8px;
+}
+
+.msgAvatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+.msgName {
+  font-weight: bold;
+  margin-right: 8px;
+}
+
+.msgTime {
+  font-size: 0.75rem;
+  color: #aaa;
+}
+
+.actionIcons {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+}
+
+.editIcon, .deleteIcon {
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.msgText {
+  padding: 4px 8px;
+}
+
+.editedTag {
+  font-size: 0.75rem;
+  color: #bbb;
+}
+
+/* ─── Input Bar ─── */
+.inputBar {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  border-top: 1px solid #444;
+}
+
+.addIcon {
+  font-size: 1.5rem;
+  margin-right: 8px;
+  cursor: pointer;
+  color: #bbb;
+}
+
+.input {
+  flex: 1;
+  padding: 6px 8px;
+  border: none;
+  border-radius: 4px;
+  background: #2f3136;
+  color: #fff;
+}
+
+.input:focus {
+  outline: none;
 }
