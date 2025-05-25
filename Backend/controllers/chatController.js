@@ -72,7 +72,7 @@ exports.getMessages = async (req, res) => {
 
 exports.delete_message = async (req, res) => {
   const { channel_id, timestamp } = req.body;
-  const userId = req.user.id;
+  const userId = req.userId; // updated
 
   try {
     const deleted = await Chat.findOneAndDelete({
@@ -94,7 +94,7 @@ exports.delete_message = async (req, res) => {
 
 exports.edit_message = async (req, res) => {
   const { channel_id, timestamp, newContent } = req.body;
-  const userId = req.user.id;
+  const userId = req.userId; // updated
 
   try {
     const message = await Chat.findOneAndUpdate(
