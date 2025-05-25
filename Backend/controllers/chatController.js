@@ -74,6 +74,8 @@ exports.delete_message = async (req, res) => {
   const { channel_id, timestamp } = req.body;
   const userId = req.userId;
 
+  console.log('DELETE DEBUG ->', { userId, channel_id, timestamp });
+
   try {
     const result = await Chat.findOneAndUpdate(
       {
@@ -81,31 +83,38 @@ exports.delete_message = async (req, res) => {
       },
       {
         $pull: {
-          'channels.$[outer].chat_details': {
-            timestamp: timestamp,
+          'channels.$[channel].chat_details': {
+            timestamp,
             sender_id: userId
           }
         }
       },
       {
-        arrayFilters: [{ 'outer.channel_id': channel_id }],
+        arrayFilters: [
+          { 'channel.channel_id': channel_id }
+        ],
         new: true
       }
     );
 
     if (!result) {
+      console.log('❌ Delete failed - no match');
       return res.status(404).json({ message: 'Message not found or not authorized' });
     }
 
+    console.log('✅ Delete successful');
     return res.status(200).json({ message: 'Message deleted successfully' });
   } catch (err) {
-    console.error('Error deleting message:', err);
+    console.error('❌ Error deleting message:', err);
     return res.status(500).json({ message: 'Server error' });
   }
 };
+
 exports.edit_message = async (req, res) => {
   const { channel_id, timestamp, newContent } = req.body;
-  const userId = req.userId; // Note: coming from req.userId, not req.user
+  const userId = req.userId;
+
+  console.log('EDIT DEBUG ->', { userId, channel_id, timestamp, newContent });
 
   try {
     const result = await Chat.findOneAndUpdate(
@@ -116,26 +125,28 @@ exports.edit_message = async (req, res) => {
       },
       {
         $set: {
-          'channels.$[outer].chat_details.$[inner].content': newContent,
-          'channels.$[outer].chat_details.$[inner].edited': true
+          'channels.$[channel].chat_details.$[chat].content': newContent,
+          'channels.$[channel].chat_details.$[chat].edited': true
         }
       },
       {
         arrayFilters: [
-          { 'outer.channel_id': channel_id },
-          { 'inner.timestamp': timestamp, 'inner.sender_id': userId }
+          { 'channel.channel_id': channel_id },
+          { 'chat.timestamp': timestamp, 'chat.sender_id': userId }
         ],
         new: true
       }
     );
 
     if (!result) {
+      console.log('❌ Edit failed - no match');
       return res.status(404).json({ message: 'Message not found or not authorized' });
     }
 
+    console.log('✅ Edit successful');
     return res.status(200).json({ message: 'Message edited successfully' });
   } catch (err) {
-    console.error('Error editing message:', err);
+    console.error('❌ Error editing message:', err);
     return res.status(500).json({ message: 'Server error' });
   }
 };
