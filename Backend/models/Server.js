@@ -3,12 +3,18 @@ const mongoose = require('mongoose');
 const serverSchema = new mongoose.Schema({
   server_name: String,
   server_pic: String,
+  roles: [{
+    name: String,
+    color: String,
+    permissions: [String],
+    id: String 
+  }],
   users: [{
     user_name: String,
     user_profile_pic: String,
     user_tag: String,
     user_id: String,
-    user_role: String
+    role_ids: [String] 
   }],
   categories: [{
     category_name: String,

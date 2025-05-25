@@ -1,0 +1,30 @@
+.role-manager {
+  padding: 1rem;
+  background: #2c2f33;
+  color: white;
+  border-radius: 8px;
+}
+
+.role-manager input, .role-manager select {
+  margin-right: 1rem;
+  padding: 0.5rem;
+  border-radius: 4px;
+  border: none;
+}
+
+.role-manager button {
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  background-color: #7289da;
+  border: none;
+  color: white;
+  cursor: pointer;
+}
+
+.role-manager button:hover {
+  background-color: #5b6eae;
+}
+
+.role-list, .assign-role, .user-role-table {
+  margin-top: 1rem;
+}
