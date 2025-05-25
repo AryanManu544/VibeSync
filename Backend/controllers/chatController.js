@@ -75,21 +75,25 @@ exports.delete_message = async (req, res) => {
   const userId = req.userId;
 
   try {
-    const result = await Chat.updateOne(
+    const result = await Chat.findOneAndUpdate(
       {
-        'channels.channel_id': channel_id,
-        'channels.chat_details': {
-          $elemMatch: { sender_id: userId, timestamp }
-        }
+        'channels.channel_id': channel_id
       },
       {
         $pull: {
-          'channels.$.chat_details': { sender_id: userId, timestamp }
+          'channels.$[outer].chat_details': {
+            timestamp: timestamp,
+            sender_id: userId
+          }
         }
+      },
+      {
+        arrayFilters: [{ 'outer.channel_id': channel_id }],
+        new: true
       }
     );
 
-    if (result.modifiedCount === 0) {
+    if (!result) {
       return res.status(404).json({ message: 'Message not found or not authorized' });
     }
 
@@ -99,29 +103,33 @@ exports.delete_message = async (req, res) => {
     return res.status(500).json({ message: 'Server error' });
   }
 };
-
 exports.edit_message = async (req, res) => {
   const { channel_id, timestamp, newContent } = req.body;
-  const userId = req.userId;
+  const userId = req.userId; // Note: coming from req.userId, not req.user
 
   try {
-    const result = await Chat.updateOne(
-      { 'channels.channel_id': channel_id },
+    const result = await Chat.findOneAndUpdate(
+      {
+        'channels.channel_id': channel_id,
+        'channels.chat_details.timestamp': timestamp,
+        'channels.chat_details.sender_id': userId
+      },
       {
         $set: {
-          'channels.$[channel].chat_details.$[msg].content': newContent,
-          'channels.$[channel].chat_details.$[msg].edited': true
+          'channels.$[outer].chat_details.$[inner].content': newContent,
+          'channels.$[outer].chat_details.$[inner].edited': true
         }
       },
       {
         arrayFilters: [
-          { 'channel.channel_id': channel_id },
-          { 'msg.timestamp': timestamp, 'msg.sender_id': userId }
-        ]
+          { 'outer.channel_id': channel_id },
+          { 'inner.timestamp': timestamp, 'inner.sender_id': userId }
+        ],
+        new: true
       }
     );
 
-    if (result.modifiedCount === 0) {
+    if (!result) {
       return res.status(404).json({ message: 'Message not found or not authorized' });
     }
 
