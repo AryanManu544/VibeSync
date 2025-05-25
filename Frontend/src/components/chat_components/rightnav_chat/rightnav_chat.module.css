@@ -79,3 +79,62 @@
   color: #72767d;
   font-size: 0.9em;
 }
+.selectedMemberRoles {
+  margin-top: 1rem;
+  padding: 0.5rem;
+  background-color: #2f3136;
+  border-radius: 8px;
+  color: white;
+}
+
+.rolesList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.roleBadge {
+  padding: 0.3rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  color: white;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.addRoleButton {
+  background-color: #3ba55d;
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 12px;
+  color: white;
+  font-weight: 500;
+  margin-left: 8px;
+}
+
+.noRolesAssigned {
+  padding: 8px;
+  font-style: italic;
+  color: #b9bbbe;
+}
+
+.roleDropdown {
+  background-color: #2f3136;
+  border: 1px solid #40444b;
+  border-radius: 6px;
+  margin-top: 0.5rem;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 10;
+}
+
+.roleDropdownItem {
+  padding: 6px 10px;
+  color: white;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.roleDropdownItem:hover {
+  background-color: #3a3c42;
+}

@@ -8011,6 +8011,11 @@
   dependencies:
     "yallist" "^4.0.0"
 
+"lucide-react@^0.511.0":
+  "integrity" "sha512-VK5a2ydJ7xm8GvBeKLS9mu1pVK6ucef9780JVUjw6bAjJL/QXnd4Y0p7SPeOUMC27YhzNCZvm5d/QX0Tp3rc0w=="
+  "resolved" "https://registry.npmjs.org/lucide-react/-/lucide-react-0.511.0.tgz"
+  "version" "0.511.0"
+
 "lz-string@^1.4.4":
   "integrity" "sha512-0ckx7ZHRPqb0oUm8zNr+90mtf9DQB60H1wMCjBtfi62Kl3a7JbHob6gA2bC+xRvZoOL+1hzUK8jeuEIQE8svEQ=="
   "resolved" "https://registry.npmjs.org/lz-string/-/lz-string-1.4.4.tgz"

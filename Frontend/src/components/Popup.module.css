@@ -1,0 +1,69 @@
+.manage-roles-container {
+  padding: 20px;
+  color: #fff;
+  background-color: #230069;
+  min-height: 100vh;
+}
+
+.add-role-btn {
+  background-color: #9462df;
+  color: white;
+  padding: 8px 16px;
+  margin-bottom: 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.create-role-box {
+  background: #36393f;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.create-role-box input[type="text"] {
+  width: 60%;
+  padding: 10px;
+  margin-bottom: 8px;
+  background-color: #230069;
+}
+
+.permissions-box label {
+  display: block;
+  margin: 4px 0;
+}
+
+.create-role-buttons button {
+  margin-right: 10px;
+  margin-top: 10px;
+}
+
+.role-item {
+  background: #202225;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 5px;
+}
+.popupBackground {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000; 
+}
+
+.popupCard {
+  background: #230069;
+  padding: 20px;
+  border-radius: 8px;
+  width: 400px;
+  max-width: 90%;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+.inputGroup {
+  margin-bottom: 5px;
+  margin-right:40px;
+}
