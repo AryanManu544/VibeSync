@@ -72,16 +72,22 @@ exports.getMessages = async (req, res) => {
 
 exports.delete_message = async (req, res) => {
   const { channel_id, timestamp } = req.body;
-  const userId = req.userId; // updated
+  const userId = req.userId;
 
   try {
-    const deleted = await Chat.findOneAndDelete({
-      channel_id,
-      timestamp,
-      sender_id: userId
-    });
+    const result = await Chat.updateOne(
+      { 'channels.channel_id': channel_id },
+      {
+        $pull: {
+          'channels.$[].chat_details': {
+            timestamp: timestamp,
+            sender_id: userId
+          }
+        }
+      }
+    );
 
-    if (!deleted) {
+    if (result.modifiedCount === 0) {
       return res.status(404).json({ message: 'Message not found or not authorized' });
     }
 
@@ -94,22 +100,31 @@ exports.delete_message = async (req, res) => {
 
 exports.edit_message = async (req, res) => {
   const { channel_id, timestamp, newContent } = req.body;
-  const userId = req.userId; // updated
+  const userId = req.userId;
 
   try {
-    const message = await Chat.findOneAndUpdate(
+    const result = await Chat.findOneAndUpdate(
       {
-        channel_id,
-        timestamp,
-        sender_id: userId
+        'channels.channel_id': channel_id,
+        'channels.chat_details.timestamp': timestamp,
+        'channels.chat_details.sender_id': userId
       },
       {
-        $set: { content: newContent, edited: true }
+        $set: {
+          'channels.$[c].chat_details.$[m].content': newContent,
+          'channels.$[c].chat_details.$[m].edited': true
+        }
       },
-      { new: true }
+      {
+        arrayFilters: [
+          { 'c.channel_id': channel_id },
+          { 'm.timestamp': timestamp, 'm.sender_id': userId }
+        ],
+        new: true
+      }
     );
 
-    if (!message) {
+    if (!result) {
       return res.status(404).json({ message: 'Message not found or not authorized' });
     }
 
