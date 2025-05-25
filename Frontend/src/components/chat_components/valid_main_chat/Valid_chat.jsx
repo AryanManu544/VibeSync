@@ -134,7 +134,7 @@ function Valid_chat() {
           'Content-Type': 'application/json',
           'x-auth-token': localStorage.getItem('token')
         },
-        body: JSON.stringify({ channel_id, timestamp, new_message: newContent })
+        body: JSON.stringify({ channel_id, timestamp, newContent })  // <-- fix here
       });
 
       const data = await res.json();
@@ -156,7 +156,6 @@ function Valid_chat() {
     }
   };
 
-
   const handleDelete = async (timestamp) => {
     if (!window.confirm('Delete this message?')) return;
 
@@ -167,7 +166,7 @@ function Valid_chat() {
           'Content-Type': 'application/json',
           'x-auth-token': localStorage.getItem('token')
         },
-        body: JSON.stringify({ channel_id, timestamp })
+        body: JSON.stringify({ channel_id, timestamp })  // ✅ Make sure this matches backend
       });
 
       const data = await res.json();
@@ -182,6 +181,7 @@ function Valid_chat() {
       alert('Error deleting message');
     }
   };
+
 
 
   return (
