@@ -78,21 +78,14 @@ exports.delete_message = async (req, res) => {
     const result = await Chat.updateOne(
       {
         'channels.channel_id': channel_id,
-        'channels.chat_details.timestamp': timestamp,
-        'channels.chat_details.sender_id': userId
-      },
-      {
-        $pull: {
-          'channels.$[chan].chat_details': {
-            timestamp,
-            sender_id: userId
-          }
+        'channels.chat_details': {
+          $elemMatch: { sender_id: userId, timestamp }
         }
       },
       {
-        arrayFilters: [
-          { 'chan.channel_id': channel_id }
-        ]
+        $pull: {
+          'channels.$.chat_details': { sender_id: userId, timestamp }
+        }
       }
     );
 
@@ -100,10 +93,10 @@ exports.delete_message = async (req, res) => {
       return res.status(404).json({ message: 'Message not found or not authorized' });
     }
 
-    res.status(200).json({ message: 'Message deleted successfully' });
+    return res.status(200).json({ message: 'Message deleted successfully' });
   } catch (err) {
     console.error('Error deleting message:', err);
-    res.status(500).json({ message: 'Server error' });
+    return res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -113,20 +106,16 @@ exports.edit_message = async (req, res) => {
 
   try {
     const result = await Chat.updateOne(
-      {
-        'channels.channel_id': channel_id,
-        'channels.chat_details.timestamp': timestamp,
-        'channels.chat_details.sender_id': userId
-      },
+      { 'channels.channel_id': channel_id },
       {
         $set: {
-          'channels.$[chan].chat_details.$[msg].content': newContent,
-          'channels.$[chan].chat_details.$[msg].edited': true
+          'channels.$[channel].chat_details.$[msg].content': newContent,
+          'channels.$[channel].chat_details.$[msg].edited': true
         }
       },
       {
         arrayFilters: [
-          { 'chan.channel_id': channel_id },
+          { 'channel.channel_id': channel_id },
           { 'msg.timestamp': timestamp, 'msg.sender_id': userId }
         ]
       }
@@ -136,9 +125,9 @@ exports.edit_message = async (req, res) => {
       return res.status(404).json({ message: 'Message not found or not authorized' });
     }
 
-    res.status(200).json({ message: 'Message edited successfully' });
+    return res.status(200).json({ message: 'Message edited successfully' });
   } catch (err) {
     console.error('Error editing message:', err);
-    res.status(500).json({ message: 'Server error' });
+    return res.status(500).json({ message: 'Server error' });
   }
 };
