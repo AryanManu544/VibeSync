@@ -1,4 +1,5 @@
 const Server = require('../models/Server');
+const mongoose = require('mongoose');
 
 exports.addRole = async (req, res) => {
   const { server_id, role_name, color = '#99AAB5', permissions } = req.body;
