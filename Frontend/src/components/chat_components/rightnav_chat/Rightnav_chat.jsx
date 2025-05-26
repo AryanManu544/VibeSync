@@ -1,53 +1,58 @@
-// src/components/rightnav_chat/Rightnav_chat.jsx
-import React, { useState } from 'react';
-import rightnav_chatcss from './rightnav_chat.module.css';
-import { useSelector } from 'react-redux';
+// src/components/chat_components/rightnav_chat/Rightnav_chat.jsx
+import React, { useState, useEffect } from 'react';
+import { useSelector }    from 'react-redux';
+import { useParams }      from 'react-router-dom';
+import axios              from 'axios';
+import rightnav_chatcss   from './rightnav_chat.module.css';
 
 export default function Rightnav_chat() {
-  const entireState = useSelector(state => state);
+  const { server_id } = useParams();
+  const API           = process.env.REACT_APP_URL;
 
-  let members = [];
-  if (Array.isArray(entireState.current_page?.members)) {
-    members = entireState.current_page.members;
-  } else if (Array.isArray(entireState.currentPage?.members)) {
-    members = entireState.currentPage.members;
-  }
+  const reduxMembers = useSelector(s => s.current_page.members);
+  const members      = Array.isArray(reduxMembers) ? reduxMembers : [];
 
-  const roles = entireState.current_page?.roles || [];
-  const currentServerId = entireState.current_page?._id;
+  const [selectedMember,  setSelectedMember]  = useState(null);
+  const [showRoleDropdown,setShowRoleDropdown]= useState(false);
+  const [rolesList,       setRolesList]       = useState([]);
 
-  const [selectedMember, setSelectedMember] = useState(null);
-  const [showRoleDropdown, setShowRoleDropdown] = useState(false);
+  useEffect(() => {
+    if (!showRoleDropdown) return;
 
-  const getInitials = (name = '') => {
-    const parts = name.trim().split(' ');
-    if (!parts[0]) return '';
-    if (parts.length === 1) return parts[0][0].toUpperCase();
-    return parts[0][0].toUpperCase() + parts[parts.length - 1][0].toUpperCase();
+    (async () => {
+      try {
+        const { data } = await axios.post(`${API}/get_roles`, { server_id });
+        setRolesList(data.roles || []);
+        console.log(rolesList)
+      } catch (err) {
+        console.error('Error fetching roles:', err);
+      }
+    })();
+  }, [showRoleDropdown, server_id, API]);
+
+  const getInitials = name => {
+    const parts = (name||'').trim().split(' ');
+    if (parts.length === 1) return parts[0][0]?.toUpperCase()||'';
+    return (parts[0][0] + parts[parts.length-1][0]).toUpperCase();
   };
 
-  const getRolesFromIDs = (roleIDs) => {
-    return roleIDs
-      ?.map(id => roles.find(role => role.id === id))
-      .filter(role => role);
+  const openRoleDropdown = () => {
+    // reset rolesList if you're re-opening
+    setShowRoleDropdown(v => !v);
   };
 
-  const handleAssignRole = async (roleId) => {
+  const handleAssignRole = async roleId => {
     try {
-      // Simulate API call
-      console.log(`Assigning role ${roleId} to user ${selectedMember.user_id}`);
-      // Example POST body:
-      /*
-      await axios.post('/assign_role', {
-        server_id: currentServerId,
+      await axios.post(`${API}/assign_role`, {
+        server_id,
         user_id: selectedMember.user_id,
         role_id: roleId
       });
-      */
       setShowRoleDropdown(false);
-      alert('Role assigned! Refresh to see changes.');
+      alert('Role assigned!');
     } catch (err) {
-      console.error('❌ Error assigning role:', err);
+      console.error('Error assigning role:', err);
+      alert('Failed to assign role');
     }
   };
 
@@ -59,82 +64,71 @@ export default function Rightnav_chat() {
         </div>
 
         <div className={rightnav_chatcss.members}>
-          {members.map(member => {
-            const { user_id, user_name, user_tag, user_profile_pic } = member;
-            return (
-              <div
-                key={user_id}
-                className={rightnav_chatcss.individual_member}
-                onClick={() => {
-                  setSelectedMember(member);
-                  setShowRoleDropdown(false);
-                }}
-              >
-                {user_profile_pic ? (
-                  <img
-                    src={user_profile_pic}
-                    alt={`${user_name} avatar`}
-                    className={rightnav_chatcss.avatar}
-                  />
-                ) : (
-                  <div className={rightnav_chatcss.avatarFallback}>
-                    {getInitials(user_name)}
+          {members.map(m => (
+            <div
+              key={m.user_id}
+              className={rightnav_chatcss.individual_member}
+              onClick={() => {
+                setSelectedMember(m);
+                setShowRoleDropdown(false);
+              }}
+            >
+              {m.user_profile_pic
+                ? <img src={m.user_profile_pic} alt="" className={rightnav_chatcss.avatar}/>
+                : <div className={rightnav_chatcss.avatarFallback}>
+                    {getInitials(m.user_name)}
                   </div>
-                )}
-                <div className={rightnav_chatcss.memberInfo}>
-                  <span className={rightnav_chatcss.username}>{user_name}</span>
-                  <span className={rightnav_chatcss.tag}>#{user_tag}</span>
-                </div>
+              }
+              <div className={rightnav_chatcss.memberInfo}>
+                <span className={rightnav_chatcss.username}>{m.user_name}</span>
+                <span className={rightnav_chatcss.tag}>#{m.user_tag}</span>
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
 
         {selectedMember && (
           <div className={rightnav_chatcss.selectedMemberRoles}>
             <h3>{selectedMember.user_name}'s Roles</h3>
 
-            {Array.isArray(selectedMember.role_ids) && selectedMember.role_ids.length > 0 ? (
-              <div className={rightnav_chatcss.rolesList}>
-                {getRolesFromIDs(selectedMember.role_ids).map((role, index) => (
+            <div className={rightnav_chatcss.rolesList}>
+              {(selectedMember.role_ids||[]).map(rid => {
+                const role = rolesList.find(r => r._id === rid);
+                return role ? (
                   <span
-                    key={index}
+                    key={rid}
                     className={rightnav_chatcss.roleBadge}
-                    style={{ backgroundColor: role.color || '#99AAB5' }}
+                    style={{ backgroundColor: role.color }}
                   >
-                    {role.name}
+                    {role.role_name}
                   </span>
-                ))}
-                <span
-                  className={rightnav_chatcss.roleBadge + ' ' + rightnav_chatcss.addRoleButton}
-                  onClick={() => setShowRoleDropdown(prev => !prev)}
-                >
-                  + Add Role
-                </span>
-              </div>
-            ) : (
-              <div className={rightnav_chatcss.noRolesAssigned}>
-                <span
-                  className={rightnav_chatcss.addRoleButton}
-                  onClick={() => setShowRoleDropdown(prev => !prev)}
-                >
-                  ➕ Add Role
-                </span>
-              </div>
-            )}
+                ) : null;
+              })}
+
+              <span
+                className={`${rightnav_chatcss.roleBadge} ${rightnav_chatcss.addRoleButton}`}
+                onClick={openRoleDropdown}
+              >
+                + Add Role
+              </span>
+            </div>
 
             {showRoleDropdown && (
               <div className={rightnav_chatcss.roleDropdown}>
-                {roles.map(role => (
-                  <div
-                    key={role.id}
-                    className={rightnav_chatcss.roleDropdownItem}
-                    style={{ borderLeft: `5px solid ${role.color}` }}
-                    onClick={() => handleAssignRole(role.id)}
-                  >
-                    {role.name}
-                  </div>
-                ))}
+                {rolesList.map(r => {
+                  const id = r._id;
+                  const name = r.role_name;
+                  return (
+                    <div
+                      key={id}
+                      className={rightnav_chatcss.roleDropdownItem}
+                      style={{ borderLeft: `5px solid ${r.color}` }}
+                      onClick={() => handleAssignRole(id)}
+                    >
+                      {name}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>

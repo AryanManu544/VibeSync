@@ -1,7 +1,7 @@
 const Server = require('../models/Server');
 
 exports.addRole = async (req, res) => {
-  const { server_id, role_name, permissions } = req.body;
+  const { server_id, role_name, color = '#99AAB5', permissions } = req.body;
   try {
     const server = await Server.findById(server_id);
     if (!server) return res.status(404).json({ message: 'Server not found' });
@@ -10,8 +10,12 @@ exports.addRole = async (req, res) => {
     if (server.roles.some(role => role.role_name === role_name)) {
       return res.status(400).json({ message: 'Role already exists' });
     }
-
-    server.roles.push({ role_name, permissions });
+    server.roles.push({
+      name:        role_name,
+      color:       color,
+      permissions,              // [ 'canDeleteChannels', ... ]
+      id:          new mongoose.Types.ObjectId().toString()
+    });
     await server.save();
     res.status(200).json({ message: 'Role added successfully' });
   } catch (err) {

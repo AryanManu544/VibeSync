@@ -45,7 +45,6 @@ export default function Navbar2ChatValid() {
   const [newCategoryName, setNewCategoryName] = useState('');
   const [isCreatingCategory, setIsCreatingCategory] = useState(false);
 
-  // New: Manage Roles popup toggle state
   const [showManageRoles, setShowManageRoles] = useState(false);
 
   const [serverDetails, setServerDetails] = useState(null);

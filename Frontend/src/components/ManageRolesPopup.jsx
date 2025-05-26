@@ -11,36 +11,39 @@ export default function ManageRolesPopup({ serverId, roles = [], onClose}) {
       canAddChannels: false
     }
   });
+  const API_BASE = process.env.REACT_APP_API_BASE_URL;
   const handleCreateRole = async () => {
-  if (!newRole.name) return;
-  const URL = process.env.REACT_APP_API_BASE_URL;
+  if (!newRole.name.trim()) return;
+
+  console.log('Calling API at:', `${API_BASE}/add_role`);   
+  console.log('Payload:', {
+    server_id: serverId,
+    role_name: newRole.name.trim(),
+    color: newRole.color,
+    permissions: Object.entries(newRole.permissions)
+      .filter(([_,v]) => v)
+      .map(([k]) => k),
+  });
+
   try {
-   const response = await axios.post(`${URL}/roles/add_role`, {
-        server_id:  serverId,
-        role_name:  newRole.name.trim(),
-        color:      newRole.color,
-        permissions: Object
-          .entries(newRole.permissions)
+    const response = await axios.post(
+      `${API_BASE}/add_role`,
+      {
+        server_id: serverId,
+        role_name: newRole.name.trim(),
+        color: newRole.color,
+        permissions: Object.entries(newRole.permissions)
           .filter(([_,v]) => v)
-          .map(([k]) => k)
-      });
-
+          .map(([k]) => k),
+      }
+    );
     console.log('Role created:', response.data);
-
-    setNewRole({
-      name: '',
-      color: '#7289da',
-      permissions: {
-        canDeleteChannels: false,
-        canAddChannels: false,
-      },
-    });
-
-    onClose(); 
-  } catch (error) {
-    console.error('Failed to create role:', error);
+    onClose();
+  } catch (err) {
+    console.error('Request failed:', err.response?.status, err.response?.data);
   }
 };
+
 
 
   const colorPresets = [
