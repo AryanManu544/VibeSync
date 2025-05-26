@@ -1,4 +1,3 @@
-// src/components/chat_components/rightnav_chat/Rightnav_chat.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
@@ -68,19 +67,26 @@ export default function Rightnav_chat() {
   };
 
   const handleAssignRole = async roleId => {
-    try {
-      await axios.post(`${API}/assign_role`, {
-        server_id,
-        user_id: selectedMember.user_id,
-        role_id: roleId
-      });
-      setShowRoleDropdown(false);
-      alert('Role assigned!');
-    } catch (err) {
-      console.error('Error assigning role:', err);
-      alert('Failed to assign role');
-    }
-  };
+  try {
+    const { data } = await axios.post(`${API}/assign_role`, {
+      server_id,
+      user_id: selectedMember.user_id,
+      role_id: roleId
+    });
+
+    // Optional: fetch updated roles from backend again
+    // But here we'll just update the selected member locally
+    setSelectedMember(prev => ({
+      ...prev,
+      role_ids: [...(prev.role_ids || []), roleId]
+    }));
+
+    setShowRoleDropdown(false);
+  } catch (err) {
+    console.error('Error assigning role:', err);
+    alert('Failed to assign role');
+  }
+};
 
   const closeProfile = () => {
     setSelectedMember(null);
@@ -93,7 +99,7 @@ export default function Rightnav_chat() {
       const rect = memberElement.getBoundingClientRect();
       setModalPosition({
         top: rect.top,
-        left: rect.left - 420 // Position to the left of the member
+        left: rect.left - 420 
       });
     }
     setSelectedMember(member);

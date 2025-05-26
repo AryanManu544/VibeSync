@@ -10,7 +10,8 @@ const userSchema = new mongoose.Schema({
     server_name: String,
     server_pic: String,
     server_role: String,
-    server_id: String
+    server_id: String,
+    roles: [String]
   }],
   incoming_reqs: [{
     id: String,
