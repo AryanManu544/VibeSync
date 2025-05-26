@@ -1,10 +1,10 @@
-/* rightnav_chat.module.css */
-
 .main_wrap {
   background: #462490;
   height: 94vh;
   overflow-y: auto;
   position: relative;
+  width:100%;
+  box-shadow: inset 10px 0 20px rgba(0, 0, 0, 0.4); 
 }
 
 .main {
@@ -322,7 +322,7 @@
 /* Role dropdown as separate modal */
 .roleDropdownModal {
   position: fixed;
-  background: #2c2f36;
+  background: linear-gradient(to bottom, #4e299f,#8434d9);;
   border: 1px solid #40444b;
   border-radius: 8px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
@@ -361,7 +361,6 @@
 }
 
 .roleDropdownItem:hover {
-  background: rgba(88, 101, 242, 0.1);
   color: #ffffff;
   padding-left: 20px;
 }
@@ -371,13 +370,13 @@
 }
 
 .roleDropdownItem.assignedRole {
-  background: rgba(67, 181, 129, 0.1);
+  background: linear-gradient(to bottom, #4e299f,#2c2f36);
   color: #43b581;
   cursor: default;
 }
 
 .roleDropdownItem.assignedRole:hover {
-  background: rgba(67, 181, 129, 0.2);
+  background: linear-gradient(to bottom, #4e299f,#2c2f36);
   padding-left: 16px;
 }
 

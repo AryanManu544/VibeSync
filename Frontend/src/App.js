@@ -7,6 +7,7 @@ import Register  from './components/auth/Register';
 import Login     from './components/auth/Login';
 import Dashboard from './components/dashboard/Dashboard';
 import Invite    from './components/Invite/Invite';
+import { Analytics } from '@vercel/analytics/react';
 
 function App() {
   const [alert, setAlert] = useState({ msg: '', type: '' });
@@ -29,6 +30,7 @@ function App() {
         <Route path="/invite/:invite_link" element={<Invite />} />
       </Routes>
     </Router>
+
   );
 }
 

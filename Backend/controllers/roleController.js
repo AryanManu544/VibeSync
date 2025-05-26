@@ -13,10 +13,10 @@ exports.addRole = async (req, res) => {
       return res.status(400).json({ message: 'Role already exists' });
     }
     server.roles.push({
-      name:        role_name,
-      color:       color,
-      permissions,              // [ 'canDeleteChannels', ... ]
-      id:          new mongoose.Types.ObjectId().toString()
+      name: role_name,
+      color: color,
+      permissions,              
+      id: new mongoose.Types.ObjectId().toString()
     });
     await server.save();
     res.status(200).json({ message: 'Role added successfully' });

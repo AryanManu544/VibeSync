@@ -28,7 +28,6 @@
 
 .channels_wrap:hover{
     background-color: #230069;
-
 }
 
 .channels{
@@ -177,8 +176,9 @@
 
 .serverPanel {
   background-color: #230069;
-  max-height: 94vh;        /* full viewport height */
-  width:   100%;        /* or fixed like 240px if you prefer */
-  overflow-y: fit;     /* scroll channels if they overflow */
+  max-height: 94vh;       
+  width:   100%;       
+  overflow-y: fit;   
   flex-direction: column;
+  box-shadow: inset -10px 0 20px rgba(0, 0, 0, 0.4); 
 }
