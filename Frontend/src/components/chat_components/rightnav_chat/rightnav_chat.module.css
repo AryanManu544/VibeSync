@@ -1,140 +1,483 @@
-.main{
-    height: 100%;
+/* rightnav_chat.module.css */
+
+.main_wrap {
+  background: #462490;
+  height: 94vh;
+  overflow-y: auto;
+  position: relative;
 }
 
-.main_wrap{
-    margin-inline: 1rem;
-    margin-top: 1rem;
-
+.main {
+  padding: 16px;
+  color: #dcddde;
+  width: 100%;
 }
 
-.members_length{
-    color: #B9B9B9;
-    font-size: .8rem;
-    font-weight: 600;
+.membersSection {
+  width: 100%;
 }
 
-.members{
-    height: 100%;
+.members_length {
+  font-size: 12px;
+  font-weight: 600;
+  color: #8e9297;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 16px;
+  padding: 0 8px;
 }
 
-.individual_member{
-    height: 48px;
-    margin-top: .5rem;
-    display: flex;
-    gap: .5rem;
-    align-items: center;
+.members {
+  margin-bottom: 24px;
 }
 
-.individual_member img{
-    height: 70%;
-    border-radius: 50%;
-    object-fit: contain;
+.individual_member {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 2px;
+}
+
+.individual_member:hover {
+  background: rgba(79, 84, 92, 0.32);
+  transform: translateX(2px);
+}
+
+.individual_member.selected {
+  background: rgba(88, 101, 242, 0.2);
+  border-left: 3px solid #5865f2;
 }
 
 .avatar {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  object-fit: cover;
-  margin-right: 8px;
+  margin-right: 12px;
+  border: 2px solid transparent;
+  transition: border-color 0.2s ease;
 }
 
 .avatarFallback {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background-color: #7289da;
-  color: white;
+  background: linear-gradient(to bottom, #5865f2, #7289da);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: bold;
-  margin-right: 8px;
-}
-
-.individual_member {
-  display: flex;
-  align-items: center;
-  padding: 4px 8px;
-  border-radius: 4px;
-  transition: background 0.2s;
-}
-
-.individual_member:hover {
-  background: rgba(79, 84, 92, 0.32);
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+  margin-right: 12px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .memberInfo {
   display: flex;
-  align-items: baseline;
+  flex-direction: column;
+  flex: 1;
 }
 
 .username {
+  font-size: 16px;
   font-weight: 500;
-  margin-right: 4px;
+  color: #ffffff;
+  line-height: 1.2;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .tag {
-  color: #72767d;
-  font-size: 0.9em;
+  font-size: 13px;
+  color: #b9bbbe;
+  opacity: 0.8;
 }
+
+/* Overlay for the profile modal */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+/* Profile modal positioned to the left of clicked member */
+.profileModal {
+  position: fixed;
+  z-index: 1001;
+  max-height: 80vh;
+  overflow-y: auto;
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 .selectedMemberRoles {
-  margin-top: 1rem;
-  padding: 0.5rem;
-  background-color: #2f3136;
-  border-radius: 8px;
+  background: linear-gradient(to bottom, #271255 , #4e299f);
+  border-radius: 12px;
+  padding: 0;
+  border: 1px solid #40444b;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  position: relative;
+  overflow: visible;
+  min-width: 400px;
+  max-width: 500px;
+}
+
+.selectedMemberRoles::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #5865f2, #7289da, #5865f2);
+  background-size: 200% 100%;
+  animation: shimmer 3s ease-in-out infinite;
+  border-radius: 12px 12px 0 0;
+}
+
+@keyframes shimmer {
+  0%, 100% { background-position: 200% 0; }
+  50% { background-position: -200% 0; }
+}
+
+.closeButton {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(220, 221, 222, 0.1);
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #dcddde;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.closeButton:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  transform: scale(1.1);
+}
+
+.memberHeader {
+  padding: 20px;
+  border-bottom: 1px solid #40444b;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: linear-gradient(to bottom, #462490, #5865f2);
+  border-radius: 12px 12px 0 0;
+}
+
+.memberHeaderAvatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 3px solid #5865f2;
+  box-shadow: 0 4px 12px rgba(88, 101, 242, 0.3);
+}
+
+.memberHeaderAvatarFallback {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(to bottom, #5865f2, #7289da);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 700;
   color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  border: 3px solid #5865f2;
+  box-shadow: 0 4px 12px rgba(88, 101, 242, 0.3);
+}
+
+.memberHeaderInfo {
+  flex: 1;
+}
+
+.memberHeaderName {
+  font-size: 24px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 4px 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.memberHeaderTag {
+  font-size: 16px;
+  color: #b9bbbe;
+  font-weight: 500;
+  opacity: 0.9;
+  text-align: center;
+}
+
+.rolesSection {
+  padding: 20px;
+}
+
+.rolesSectionTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: #8e9297;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
 }
 
 .rolesList {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
+  gap: 8px;
+  margin-bottom: 16px;
 }
 
 .roleBadge {
-  padding: 0.3rem 0.6rem;
-  border-radius: 12px;
-  font-size: 0.85rem;
-  color: white;
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 12px;
   font-weight: 500;
-  white-space: nowrap;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(4px);
+  transition: all 0.2s ease;
+  cursor: default;
+  position: relative;
+  overflow: hidden;
 }
+
+.roleBadge::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.roleBadge:hover::before {
+  left: 100%;
+}
+
 .addRoleButton {
-  background-color: #3ba55d;
+  background: linear-gradient(to bottom, #43b581, #3ba675) !important;
+  border: 1px solid #43b581;
   cursor: pointer;
-  padding: 4px 10px;
-  border-radius: 12px;
-  color: white;
-  font-weight: 500;
-  margin-left: 8px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  position: relative;
 }
 
-.noRolesAssigned {
-  padding: 8px;
-  font-style: italic;
-  color: #b9bbbe;
+.addRoleButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(67, 181, 129, 0.4);
+  background: linear-gradient(to bottom, #4fc490, #43b581) !important;
 }
 
-.roleDropdown {
-  background-color: #2f3136;
+.addRoleButton:active {
+  transform: translateY(0);
+}
+
+/* Separate overlay for dropdown modal */
+.dropdownOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: transparent;
+  z-index: 1010;
+}
+
+/* Role dropdown as separate modal */
+.roleDropdownModal {
+  position: fixed;
+  background: #2c2f36;
   border: 1px solid #40444b;
-  border-radius: 6px;
-  margin-top: 0.5rem;
-  max-height: 200px;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+  max-height: 300px;
   overflow-y: auto;
-  z-index: 10;
+  z-index: 1011;
+  backdrop-filter: blur(8px);
+  animation: dropdownSlideIn 0.2s ease-out;
+  min-width: 200px;
+}
+
+@keyframes dropdownSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .roleDropdownItem {
-  padding: 6px 10px;
-  color: white;
+  padding: 12px 16px;
   cursor: pointer;
-  transition: background 0.2s ease;
+  color: #dcddde;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  border-left: 4px solid transparent;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .roleDropdownItem:hover {
-  background-color: #3a3c42;
+  background: rgba(88, 101, 242, 0.1);
+  color: #ffffff;
+  padding-left: 20px;
+}
+
+.roleDropdownItem:not(:last-child) {
+  border-bottom: 1px solid rgba(64, 68, 75, 0.5);
+}
+
+.roleDropdownItem.assignedRole {
+  background: rgba(67, 181, 129, 0.1);
+  color: #43b581;
+  cursor: default;
+}
+
+.roleDropdownItem.assignedRole:hover {
+  background: rgba(67, 181, 129, 0.2);
+  padding-left: 16px;
+}
+
+.roleName {
+  flex: 1;
+}
+
+.assignedIndicator {
+  font-size: 16px;
+  font-weight: 600;
+  color: #43b581;
+}
+
+.roleDropdownModal::-webkit-scrollbar {
+  width: 4px;
+}
+
+.roleDropdownModal::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.roleDropdownModal::-webkit-scrollbar-thumb {
+  background: #5865f2;
+  border-radius: 4px;
+}
+
+.roleDropdownModal::-webkit-scrollbar-thumb:hover {
+  background: #7289da;
+}
+
+/* Custom scrollbar for main wrap */
+.main_wrap::-webkit-scrollbar {
+  width: 6px;
+}
+
+.main_wrap::-webkit-scrollbar-track {
+  background: #2c2f36;
+}
+
+.main_wrap::-webkit-scrollbar-thumb {
+  background: #5865f2;
+  border-radius: 6px;
+}
+
+.main_wrap::-webkit-scrollbar-thumb:hover {
+  background: #7289da;
+}
+
+/* Custom scrollbar for modal */
+.profileModal::-webkit-scrollbar {
+  width: 6px;
+}
+
+.profileModal::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.profileModal::-webkit-scrollbar-thumb {
+  background: #5865f2;
+  border-radius: 6px;
+}
+
+.profileModal::-webkit-scrollbar-thumb:hover {
+  background: #7289da;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .main {
+    padding: 12px;
+  }
+  
+  .profileModal {
+    left: 16px !important;
+    right: 16px;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    max-width: none;
+  }
+  
+  .selectedMemberRoles {
+    min-width: auto;
+  }
+  
+  .memberHeader {
+    padding: 16px;
+  }
+  
+  .rolesSection {
+    padding: 16px;
+  }
+  
+  .roleBadge {
+    font-size: 11px;
+    padding: 5px 10px;
+  }
+  
+  .roleDropdownModal {
+    left: 16px !important;
+    right: 16px;
+    min-width: auto;
+  }
 }
