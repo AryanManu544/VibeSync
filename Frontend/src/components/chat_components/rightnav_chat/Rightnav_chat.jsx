@@ -21,7 +21,7 @@ export default function Rightnav_chat() {
 
     (async () => {
       try {
-        const { data } = await axios.post(`${API}/get_roles`, { server_id });
+        const { data } = await axios.get(`${API}/get_roles`, { server_id });
         setRolesList(data.roles || []);
         console.log(rolesList)
       } catch (err) {

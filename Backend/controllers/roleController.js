@@ -59,7 +59,7 @@ exports.removeRole = async (req, res) => {
 };
 
 exports.getRoles = async (req, res) => {
-  const { server_id } = req.body;
+  const { server_id } = req.query;
   try {
     const server = await Server.findById(server_id);
     if (!server) return res.status(404).json({ message: 'Server not found' });
