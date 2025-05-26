@@ -18,43 +18,52 @@ export const fetchServerInfo = createAsyncThunk(
     );
     const data = await res.json();
     if (!res.ok) return thunkAPI.rejectWithValue(data.message);
-    return data; 
+    return data;
   }
 );
 
 const current_page = createSlice({
   name: 'current_page',
   initialState: {
-    page_id:       '',
-    page_name:     '',
-    members:       [],
-    role:          '',
+    page_id: '',
+    page_name: '',
+    members: [],
+    roles: [], 
+    role: '',
     server_exists: null,
-    status:        'idle',
-    error:         null
+    status: 'idle',
+    error: null
   },
   reducers: {
-    change_page_id:   (state, action) => { state.page_id = action.payload; },
+    change_page_id: (state, action) => { state.page_id = action.payload; },
     change_page_name: (state, action) => { state.page_name = action.payload; },
-    server_role:      (state, action) => { state.role = action.payload; },
+    server_role: (state, action) => { state.role = action.payload; },
     server_existence: (state, action) => { state.server_exists = action.payload; },
     server_members: (state, action) => {
       state.members = action.payload;
+    },
+    update_member_roles: (state, action) => {
+      const { user_id, role_ids } = action.payload;
+      const memberIndex = state.members.findIndex(m => m.user_id === user_id);
+      if (memberIndex !== -1) {
+        state.members[memberIndex].role_ids = role_ids;
+      }
     },
   },
   extraReducers: builder => {
     builder
       .addCase(fetchServerInfo.pending, (state) => {
         state.status = 'loading';
-        state.error  = null;
+        state.error = null;
       })
       .addCase(fetchServerInfo.fulfilled, (state, action) => {
-        state.status  = 'succeeded';
+        state.status = 'succeeded';
         state.members = action.payload.users;
+        state.roles = action.payload.roles || [];
       })
       .addCase(fetchServerInfo.rejected, (state, action) => {
         state.status = 'failed';
-        state.error  = action.payload || action.error.message;
+        state.error = action.payload || action.error.message;
       });
   }
 });
@@ -64,7 +73,8 @@ export const {
   change_page_name,
   server_members,
   server_role,
-  server_existence
+  server_existence,
+  update_member_roles
 } = current_page.actions;
 
 export default current_page.reducer;

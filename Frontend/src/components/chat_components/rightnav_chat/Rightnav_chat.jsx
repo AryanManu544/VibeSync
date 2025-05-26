@@ -1,46 +1,46 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
-import axios from 'axios';
 import rightnav_chatcss from './rightnav_chat.module.css';
+import { useDispatch, useSelector } from 'react-redux';
+import { update_member_roles, fetchServerInfo } from '../../../Redux/current_page';
 
 export default function Rightnav_chat() {
   const { server_id } = useParams();
-  const API = process.env.REACT_APP_URL;
+  const dispatch = useDispatch();
 
-  const reduxMembers = useSelector(s => s.current_page.members);
-  const members = Array.isArray(reduxMembers) ? reduxMembers : [];
+  const members = useSelector(state => Array.isArray(state.current_page.members) ? state.current_page.members : []);
+  const roles = useSelector(state => Array.isArray(state.current_page.roles) ? state.current_page.roles : []);
 
+  // Local states
   const [selectedMember, setSelectedMember] = useState(null);
   const [showRoleDropdown, setShowRoleDropdown] = useState(false);
-  const [rolesList, setRolesList] = useState([]);
   const [modalPosition, setModalPosition] = useState({ top: 0, left: 0 });
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
-  
+
   const memberRefs = useRef({});
   const addRoleButtonRef = useRef(null);
 
+  // Fetch server info (members + roles) on mount or when server_id changes
   useEffect(() => {
-    if (!showRoleDropdown) return;
+    if (server_id) {
+      dispatch(fetchServerInfo(server_id));
+    }
+  }, [dispatch, server_id]);
 
-    (async () => {
-      try {
-        const { data } = await axios.get(`${API}/get_roles`, {
-          params: { server_id }
-        });
-        setRolesList(data.roles || []);
-        console.log(data.roles);
-      } catch (err) {
-        console.error('Error fetching roles:', err);
-      }
-    })();
-  }, [showRoleDropdown, server_id, API]);
+  // Sync rolesList local state with Redux roles
+  const [rolesList, setRolesList] = useState([]);
+  useEffect(() => {
+    setRolesList(roles);
+  }, [roles]);
 
   // Close modals when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      // Close role dropdown if clicking outside
-      if (showRoleDropdown && !event.target.closest(`.${rightnav_chatcss.addRoleButton}`) && !event.target.closest(`.${rightnav_chatcss.roleDropdownModal}`)) {
+      if (
+        showRoleDropdown &&
+        !event.target.closest(`.${rightnav_chatcss.addRoleButton}`) &&
+        !event.target.closest(`.${rightnav_chatcss.roleDropdownModal}`)
+      ) {
         setShowRoleDropdown(false);
       }
     };
@@ -49,7 +49,7 @@ export default function Rightnav_chat() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showRoleDropdown]);
 
-  const getInitials = name => {
+  const getInitials = (name) => {
     const parts = (name || '').trim().split(' ');
     if (parts.length === 1) return parts[0][0]?.toUpperCase() || '';
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
@@ -60,33 +60,80 @@ export default function Rightnav_chat() {
       const rect = addRoleButtonRef.current.getBoundingClientRect();
       setDropdownPosition({
         top: rect.bottom + 8,
-        left: rect.left
+        left: rect.left,
       });
     }
-    setShowRoleDropdown(v => !v);
+    setShowRoleDropdown((v) => !v);
   };
 
-  const handleAssignRole = async roleId => {
-  try {
-    const { data } = await axios.post(`${API}/assign_role`, {
-      server_id,
-      user_id: selectedMember.user_id,
-      role_id: roleId
-    });
+  const handleAssignRole = async (roleId) => {
+    if (!selectedMember) return;
 
-    // Optional: fetch updated roles from backend again
-    // But here we'll just update the selected member locally
-    setSelectedMember(prev => ({
-      ...prev,
-      role_ids: [...(prev.role_ids || []), roleId]
-    }));
+    try {
+      // Call backend to assign role
+      const res = await fetch(`${process.env.REACT_APP_URL}/assign_role`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-auth-token': localStorage.getItem('token'),
+        },
+        body: JSON.stringify({
+          server_id,
+          user_id: selectedMember.user_id,
+          role_id: roleId,
+        }),
+      });
+      const data = await res.json();
 
-    setShowRoleDropdown(false);
-  } catch (err) {
-    console.error('Error assigning role:', err);
-    alert('Failed to assign role');
-  }
-};
+      if (!res.ok) {
+        throw new Error(data.message || 'Failed to assign role');
+      }
+
+      setSelectedMember((prev) => {
+        if (!prev) return prev;
+        const updatedRoles = prev.role_ids.includes(roleId) ? prev.role_ids : [...prev.role_ids, roleId];
+        dispatch(update_member_roles({ user_id: prev.user_id, role_ids: updatedRoles }));
+        return { ...prev, role_ids: updatedRoles };
+      });
+
+      setShowRoleDropdown(false);
+    } catch (err) {
+      console.error('Error assigning role:', err);
+      alert(err.message || 'Failed to assign role');
+    }
+  };
+  const handleRemoveRole = async (roleId) => {
+    if (!selectedMember) return;
+
+    try {
+      const res = await fetch(`${process.env.REACT_APP_URL}/remove_role`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-auth-token': localStorage.getItem('token'),
+        },
+        body: JSON.stringify({
+          server_id,
+          user_id: selectedMember.user_id,
+          role_id: roleId,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to remove role');
+
+      setSelectedMember((prev) => {
+        if (!prev) return prev;
+        const updatedRoles = prev.role_ids.filter((id) => id !== roleId);
+        dispatch(update_member_roles({ user_id: prev.user_id, role_ids: updatedRoles }));
+        return { ...prev, role_ids: updatedRoles };
+      });
+    } catch (err) {
+      console.error('Error removing role:', err);
+      alert(err.message || 'Failed to remove role');
+    }
+  };
+
 
   const closeProfile = () => {
     setSelectedMember(null);
@@ -99,7 +146,7 @@ export default function Rightnav_chat() {
       const rect = memberElement.getBoundingClientRect();
       setModalPosition({
         top: rect.top,
-        left: rect.left - 420 
+        left: rect.left - 420,
       });
     }
     setSelectedMember(member);
@@ -111,26 +158,21 @@ export default function Rightnav_chat() {
       <div className={rightnav_chatcss.main_wrap}>
         <div className={rightnav_chatcss.main}>
           <div className={rightnav_chatcss.membersSection}>
-            <div className={rightnav_chatcss.members_length}>
-              ALL MEMBERS — {members.length}
-            </div>
-
+            <div className={rightnav_chatcss.members_length}>ALL MEMBERS — {members.length}</div>
             <div className={rightnav_chatcss.members}>
-              {members.map(m => (
+              {members.map((m) => (
                 <div
                   key={m.user_id}
-                  ref={el => memberRefs.current[m.user_id] = el}
-                  className={`${rightnav_chatcss.individual_member} ${
-                    selectedMember?.user_id === m.user_id ? rightnav_chatcss.selected : ''
-                  }`}
+                  ref={(el) => (memberRefs.current[m.user_id] = el)}
+                  className={`${rightnav_chatcss.individual_member} ${selectedMember?.user_id === m.user_id ? rightnav_chatcss.selected : ''
+                    }`}
                   onClick={() => handleMemberClick(m)}
                 >
-                  {m.user_profile_pic
-                    ? <img src={m.user_profile_pic} alt="" className={rightnav_chatcss.avatar}/>
-                    : <div className={rightnav_chatcss.avatarFallback}>
-                        {getInitials(m.user_name)}
-                      </div>
-                  }
+                  {m.user_profile_pic ? (
+                    <img src={m.user_profile_pic} alt="" className={rightnav_chatcss.avatar} />
+                  ) : (
+                    <div className={rightnav_chatcss.avatarFallback}>{getInitials(m.user_name)}</div>
+                  )}
                   <div className={rightnav_chatcss.memberInfo}>
                     <span className={rightnav_chatcss.username}>{m.user_name}</span>
                     <span className={rightnav_chatcss.tag}>#{m.user_tag}</span>
@@ -146,29 +188,24 @@ export default function Rightnav_chat() {
       {selectedMember && (
         <>
           <div className={rightnav_chatcss.overlay} onClick={closeProfile} />
-          <div 
+          <div
             className={rightnav_chatcss.profileModal}
             style={{
               top: `${modalPosition.top}px`,
               left: `${modalPosition.left}px`,
-              transform: 'none'
+              transform: 'none',
             }}
           >
             <div className={rightnav_chatcss.selectedMemberRoles}>
-              {/* Close button */}
-              <button 
-                className={rightnav_chatcss.closeButton}
-                onClick={closeProfile}
-              >
+              <button className={rightnav_chatcss.closeButton} onClick={closeProfile}>
                 ×
               </button>
 
-              {/* Member Header with Avatar and Info */}
               <div className={rightnav_chatcss.memberHeader}>
                 {selectedMember.user_profile_pic ? (
-                  <img 
-                    src={selectedMember.user_profile_pic} 
-                    alt="" 
+                  <img
+                    src={selectedMember.user_profile_pic}
+                    alt=""
                     className={rightnav_chatcss.memberHeaderAvatar}
                   />
                 ) : (
@@ -176,26 +213,18 @@ export default function Rightnav_chat() {
                     {getInitials(selectedMember.user_name)}
                   </div>
                 )}
-                
+
                 <div className={rightnav_chatcss.memberHeaderInfo}>
-                  <h2 className={rightnav_chatcss.memberHeaderName}>
-                    {selectedMember.user_name}
-                  </h2>
-                  <div className={rightnav_chatcss.memberHeaderTag}>
-                    #{selectedMember.user_tag}
-                  </div>
+                  <h2 className={rightnav_chatcss.memberHeaderName}>{selectedMember.user_name}</h2>
+                  <div className={rightnav_chatcss.memberHeaderTag}>#{selectedMember.user_tag}</div>
                 </div>
               </div>
 
-              {/* Roles Section */}
               <div className={rightnav_chatcss.rolesSection}>
-                <div className={rightnav_chatcss.rolesSectionTitle}>
-                  Roles — {(selectedMember.role_ids || []).length}
-                </div>
-
+                <div className={rightnav_chatcss.rolesSectionTitle}>Roles — {(selectedMember.role_ids || []).length}</div>
                 <div className={rightnav_chatcss.rolesList}>
-                  {(selectedMember.role_ids || []).map(rid => {
-                    const role = rolesList.find(r => r._id === rid);
+                  {(selectedMember.role_ids || []).map((rid) => {
+                    const role = rolesList.find((r) => r._id === rid);
                     return role ? (
                       <span
                         key={rid}
@@ -203,6 +232,15 @@ export default function Rightnav_chat() {
                         style={{ backgroundColor: role.color }}
                       >
                         {role.name}
+                        <span
+                          className={rightnav_chatcss.removeRoleIcon}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRemoveRole(rid);
+                          }}
+                        >
+                          ×
+                        </span>
                       </span>
                     ) : null;
                   })}
@@ -224,22 +262,22 @@ export default function Rightnav_chat() {
         </>
       )}
 
-      {/* Role Dropdown Modal - Separate modal */}
+      {/* Role Dropdown Modal */}
       {showRoleDropdown && (
         <>
           <div className={rightnav_chatcss.dropdownOverlay} onClick={() => setShowRoleDropdown(false)} />
-          <div 
+          <div
             className={rightnav_chatcss.roleDropdownModal}
             style={{
               top: `${dropdownPosition.top}px`,
-              left: `${dropdownPosition.left}px`
+              left: `${dropdownPosition.left}px`,
             }}
           >
-            {rolesList.map(r => {
+            {rolesList.map((r) => {
               const id = r._id;
               const name = r.name;
               const isAssigned = (selectedMember?.role_ids || []).includes(id);
-              
+
               return (
                 <div
                   key={id}
@@ -253,9 +291,7 @@ export default function Rightnav_chat() {
                   }}
                 >
                   <span className={rightnav_chatcss.roleName}>{name}</span>
-                  {isAssigned && (
-                    <span className={rightnav_chatcss.assignedIndicator}>✓</span>
-                  )}
+                  {isAssigned && <span className={rightnav_chatcss.assignedIndicator}>✓</span>}
                 </div>
               );
             })}

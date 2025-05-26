@@ -95,10 +95,8 @@ exports.assignRole = async (req, res) => {
   }
 };
 
-
-
 exports.removeRole = async (req, res) => {
-  const { server_id, user_id } = req.body;
+  const { server_id, user_id, role_id } = req.body;
   try {
     const server = await Server.findById(server_id);
     if (!server) return res.status(404).json({ message: 'Server not found' });
@@ -106,7 +104,8 @@ exports.removeRole = async (req, res) => {
     const user = server.users.find(u => u.user_id === user_id);
     if (!user) return res.status(404).json({ message: 'User not found in server' });
 
-    user.user_role = '';
+    user.role_ids = user.role_ids.filter(rid => rid.toString() !== role_id);
+
     await server.save();
     res.status(200).json({ message: 'Role removed successfully' });
   } catch (err) {
