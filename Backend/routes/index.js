@@ -8,5 +8,5 @@ router.use(require('./serverRoutes'));
 router.use(require('./dmRoutes'));
 router.use('/invite', require('./inviteRoutes'));
 router.use(require('./chatRoutes'));
-
+router.use(require('./roleRoutes'));
 module.exports = router;

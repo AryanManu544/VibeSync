@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { X, Shield, Plus, Palette, Check } from 'lucide-react';
+import axios from 'axios';
 
-export default function ManageRolesPopup({ serverId, roles = [], onClose, onCreateRole }) {
+export default function ManageRolesPopup({ serverId, roles = [], onClose}) {
   const [newRole, setNewRole] = useState({
     name: '',
     color: '#5865F2',
@@ -10,13 +11,37 @@ export default function ManageRolesPopup({ serverId, roles = [], onClose, onCrea
       canAddChannels: false
     }
   });
+  const handleCreateRole = async () => {
+  if (!newRole.name) return;
+  const URL = process.env.REACT_APP_API_BASE_URL;
+  try {
+   const response = await axios.post(`${URL}/roles/add_role`, {
+        server_id:  serverId,
+        role_name:  newRole.name.trim(),
+        color:      newRole.color,
+        permissions: Object
+          .entries(newRole.permissions)
+          .filter(([_,v]) => v)
+          .map(([k]) => k)
+      });
 
-  const handleCreateRole = () => {
-    if (newRole.name.trim()) {
-      onCreateRole(newRole);
-      setNewRole({ name: '', color: '#5865F2', permissions: { canDeleteChannels: false, canAddChannels: false } });
-    }
-  };
+    console.log('Role created:', response.data);
+
+    setNewRole({
+      name: '',
+      color: '#7289da',
+      permissions: {
+        canDeleteChannels: false,
+        canAddChannels: false,
+      },
+    });
+
+    onClose(); 
+  } catch (error) {
+    console.error('Failed to create role:', error);
+  }
+};
+
 
   const colorPresets = [
     '#5865F2', '#ED4245', '#FEE75C', '#57F287', 
