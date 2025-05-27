@@ -11,9 +11,7 @@ import socket from '../../Socket/Socket';
 import logo from '../../../images/discord_logo_3.png';
 import { useParams } from 'react-router-dom';
 
-// Emoji data - same as DMChat
 const EMOJI_MAP = {
-  // Faces
   'happy': '😊',
   'sad': '😢',
   'laugh': '😂',
@@ -36,7 +34,6 @@ const EMOJI_MAP = {
   'ghost': '👻',
   'alien': '👽',
   'robot': '🤖',
-  // Gestures
   'thumbsup': '👍',
   'thumbsdown': '👎',
   'clap': '👏',
@@ -55,8 +52,8 @@ const EMOJI_MAP = {
 };
 
 const EMOJI_CATEGORIES = {
-  'Smileys': ['happy', 'sad', 'laugh', 'cry', 'angry', 'love', 'wink', 'cool', 'surprised', 'confused', 'tired', 'sick', 'dizzy', 'money', 'nerd', 'party', 'sob', 'rage'],
-  'Objects': ['skull', 'ghost', 'alien', 'robot', 'fire', 'star', 'heart', 'broken_heart', 'sparkles', 'tada', 'rocket', 'bomb', 'zzz'],
+  'Faces': ['happy', 'sad', 'laugh', 'cry', 'angry', 'love', 'wink', 'cool', 'surprised', 'confused', 'tired', 'sick', 'dizzy', 'money', 'nerd', 'party', 'sob', 'rage','skull'],
+  'Objects': ['ghost', 'alien', 'robot', 'fire', 'star', 'heart', 'broken_heart', 'sparkles', 'tada', 'rocket', 'bomb', 'zzz'],
   'Gestures': ['thumbsup', 'thumbsdown', 'clap', 'wave', 'peace', 'ok']
 };
 

@@ -10,7 +10,6 @@ import defaultAvatar from '../../images/vibesync_logo_2.png';
 import stylesChat from './dmchat.module.css';
 
 const EMOJI_MAP = {
-  // Faces
   'happy': '😊',
   'sad': '😢',
   'laugh': '😂',
@@ -33,7 +32,6 @@ const EMOJI_MAP = {
   'ghost': '👻',
   'alien': '👽',
   'robot': '🤖',
-  // Gestures
   'thumbsup': '👍',
   'thumbsdown': '👎',
   'clap': '👏',
@@ -52,8 +50,8 @@ const EMOJI_MAP = {
 };
 
 const EMOJI_CATEGORIES = {
-  'Smileys': ['happy', 'sad', 'laugh', 'cry', 'angry', 'love', 'wink', 'cool', 'surprised', 'confused', 'tired', 'sick', 'dizzy', 'money', 'nerd', 'party', 'sob', 'rage'],
-  'Objects': ['skull', 'ghost', 'alien', 'robot', 'fire', 'star', 'heart', 'broken_heart', 'sparkles', 'tada', 'rocket', 'bomb', 'zzz'],
+  'Faces': ['happy', 'sad', 'laugh', 'cry', 'angry', 'love', 'wink', 'cool', 'surprised', 'confused', 'tired', 'sick', 'dizzy', 'money', 'nerd', 'party', 'sob', 'rage','skull'],
+  'Objects': ['ghost', 'alien', 'robot', 'fire', 'star', 'heart', 'broken_heart', 'sparkles', 'tada', 'rocket', 'bomb', 'zzz'],
   'Gestures': ['thumbsup', 'thumbsdown', 'clap', 'wave', 'peace', 'ok']
 };
 
@@ -148,7 +146,7 @@ export default function DMChat() {
   const handleImageSelect = (event) => {
     const file = event.target.files[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+      if (file.size > 5 * 1024 * 1024) { 
         alert('Image size must be less than 5MB');
         return;
       }
@@ -496,7 +494,7 @@ export default function DMChat() {
           position: 'absolute',
           bottom: '70px',
           right: '60px',
-          background: '#2f3136',
+          background: 'linear-gradient(to bottom,rgb(78, 18, 107),rgb(136, 48, 208))',
           border: '1px solid #40444b',
           borderRadius: '8px',
           padding: '12px',
