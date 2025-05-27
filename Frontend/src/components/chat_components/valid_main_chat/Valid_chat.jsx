@@ -232,7 +232,7 @@ function Valid_chat() {
   };
 
   const store_image_message = async (imageUrl, timestamp) => {
-    const res = await fetch(`${url}/store_message`, {
+    const res = await fetch(`${url}/store_image`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
