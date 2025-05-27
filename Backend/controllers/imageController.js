@@ -1,59 +1,21 @@
 const path = require('path');
-const DMChat = require('../models/DMChat');     
-const Chat = require('../models/Chat');        
-
-exports.uploadDmImage = async (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ msg: 'No image file uploaded' });
-  }
-
-  const imageUrl = `/uploads/${req.file.filename}`;
-  const { to } = req.body;
-
-  const message = {
-    senderId: req.user.id,
-    senderName: req.user.username,
-    senderPic: req.user.profile_pic,
-    content: '',
-    image: imageUrl,
-    timestamp: Date.now(),
-    edited: false
-  };
-
-  try {
-    const participants = [req.user.id, to].sort(); 
-    let dmChat = await DMChat.findOne({ participants });
-
-    if (!dmChat) {
-      dmChat = new DMChat({
-        participants,
-        messages: [message]
-      });
-    } else {
-      dmChat.messages.push(message);
-    }
-
-    await dmChat.save();
-    res.status(200).json({ imageUrl });
-  } catch (err) {
-    console.error('Error saving DM image message:', err);
-    res.status(500).json({ msg: 'Server error saving DM image' });
-  }
-};
+const DMChat = require('../models/DMChat');
+const Chat = require('../models/Chat');
 
 exports.uploadChannelImage = async (req, res) => {
   if (!req.file) {
-    return res.status(400).json({ msg: 'No image file uploaded' });
+    return res.status(400).json({ status: 400, msg: 'No image file uploaded' });
   }
 
   const imageUrl = `/uploads/${req.file.filename}`;
   const { server_id, channel_id } = req.body;
 
   try {
-    res.status(200).json({ imageUrl });
+    // No need to store in DB here — only return the URL for frontend use
+    res.status(200).json({ status: 200, imageUrl });
   } catch (err) {
     console.error('Error uploading channel image:', err);
-    res.status(500).json({ msg: 'Server error uploading channel image' });
+    res.status(500).json({ status: 500, msg: 'Server error uploading channel image' });
   }
 };
 
@@ -63,6 +25,10 @@ exports.storeChannelImageMessage = async (req, res) => {
     message, image, username, tag, id,
     profile_pic, timestamp
   } = req.body;
+
+  if (!image) {
+    return res.status(400).json({ status: 400, msg: 'Image URL is required' });
+  }
 
   const msg = {
     content: message || '',
@@ -103,20 +69,23 @@ exports.storeChannelImageMessage = async (req, res) => {
     res.status(200).json({ status: 200, msg: 'Image message stored' });
   } catch (err) {
     console.error('Error storing channel image message:', err);
-    res.status(500).json({ msg: 'Server error storing image message' });
+    res.status(500).json({ status: 500, msg: 'Server error storing image message' });
   }
 };
 
 exports.storeDMImageMessage = async (req, res) => {
   try {
     const { to, imageUrl, timestamp } = req.body;
+
+    if (!imageUrl || !to || !timestamp) {
+      return res.status(400).json({ status: 400, msg: 'Missing required fields (imageUrl, to, timestamp)' });
+    }
+
     const userId = req.user.id;
     const userName = req.user.username;
     const profilePic = req.user.profile_pic;
 
     const participants = [userId, to].sort();
-
-    let dmChat = await DMChat.findOne({ participants });
 
     const message = {
       senderId: userId,
@@ -128,6 +97,8 @@ exports.storeDMImageMessage = async (req, res) => {
       edited: false
     };
 
+    let dmChat = await DMChat.findOne({ participants });
+
     if (!dmChat) {
       dmChat = new DMChat({
         participants,
@@ -138,9 +109,9 @@ exports.storeDMImageMessage = async (req, res) => {
     }
 
     await dmChat.save();
-    res.json({ status: 200, message: 'DM image message stored' });
+    res.status(200).json({ status: 200, message: 'DM image message stored' });
   } catch (err) {
     console.error('Error storing DM image message:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ status: 500, error: 'Internal server error' });
   }
 };

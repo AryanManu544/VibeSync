@@ -10,7 +10,6 @@ router.post('/store_dm_message', auth, dmController.storeDMMessage);
 router.post('/get_dm_history', auth, dmController.getDMHistory);
 router.post('/edit_dm_message', auth, dmController.editDMMessage);
 router.post('/delete_dm_message', auth, dmController.deleteDMMessage);
-router.post('/upload_dm_image', auth, imageController.uploadDmImage);
 router.post('/store_dm_image', auth, imageController.storeDMImageMessage);
 
 module.exports = router;
