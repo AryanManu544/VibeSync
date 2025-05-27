@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Open+Sans&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&display=swap');
 
 .server_name{
     position: relative;
@@ -22,65 +22,295 @@
     left: .7rem;
     color: white;
     background-color: #18191C;
-    border-radius: 5px;
+    border-radius: 8px;
     padding: .5rem;
     width: 90%;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .options{
     display: flex;
     justify-content: space-between;
-    padding: .5rem;
+    padding: .7rem;
     font-weight: 400;
-    font-size: .8rem;
+    font-size: .85rem;
     cursor: pointer;
-    border-radius: 5px;
+    border-radius: 6px;
     color: #B9BBBE;
+    transition: all 0.2s ease;
 }
 
 .options:hover{
     background-color: blueviolet;
     color: white !important; 
+    transform: translateY(-1px);
 }
 
 .options:last-child:hover{
     background-color: rgb(231, 98, 95);
 }
 
-#modal_main_wrap{
+/* Enhanced Modal Styles */
+.modal_main {
+    background: linear-gradient(135deg, #2C2F36 0%, #36393F 100%);
+    border-radius: 16px;
+    padding: 0;
+    color: white;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    overflow: hidden;
     max-width: 450px;
-
+    width: 90%;
+    margin: auto;
 }
 
-
-.modal_main{
-    background-color: #36393F;
-    padding: 1rem;  
-    color: white;  
+.modal_header {
+    background: linear-gradient(135deg, #5865F2 0%, #7289DA 100%);
+    padding: 1.5rem 2rem;
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: white;
+    text-align: center;
+    position: relative;
 }
 
-.modal_comps{
-    margin-bottom: .5rem;
+.modal_header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
 }
 
-#modal_header{
+.modal_body {
+    padding: 2rem;
+}
+
+.modal_body input {
+    width: 100%;
+    background: linear-gradient(135deg, #202225 0%, #2C2F36 100%);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 1rem 1.2rem;
+    font-size: 1rem;
+    color: white;
+    font-family: 'Open Sans', sans-serif;
+    transition: all 0.3s ease;
+}
+
+.modal_body input:focus {
+    outline: none;
+    border-color: #5865F2;
+    box-shadow: 0 0 20px rgba(88, 101, 242, 0.3);
+    transform: translateY(-2px);
+}
+
+.modal_body input::placeholder {
+    color: #72767D;
+    font-weight: 400;
+}
+
+.modal_footer {
+    padding: 1.5rem 2rem 2rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.modal_footer button {
+    padding: 0.8rem 1.8rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Open Sans', sans-serif;
+}
+
+.modal_footer button:first-child {
+    background: transparent;
+    color: #B9BBBE;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.modal_footer button:first-child:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    transform: translateY(-2px);
+}
+
+.modal_footer button:last-child {
+    background: linear-gradient(135deg, #5865F2 0%, #7289DA 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(88, 101, 242, 0.4);
+}
+
+.modal_footer button:last-child:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(88, 101, 242, 0.6);
+}
+
+.modal_footer button:last-child:disabled {
+    background: #4F545C;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Enhanced Invite Modal Styles */
+.invite_modal_content {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.invite_card {
+    background: linear-gradient(135deg, #2C2F36 0%, #36393F 100%);
+    border-radius: 16px;
+    padding: 2rem;
+    max-width: 450px;
+    width: 90%;
+    margin: auto;
+    color: #dcddde;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.invite_card_header {
+    background: linear-gradient(135deg, #57F287 0%, #3BA55D 100%);
+    margin: -2rem -2rem 1.5rem -2rem;
+    padding: 1.5rem 2rem;
+    border-radius: 16px 16px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+}
+
+.invite_card_header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+}
+
+.invite_card_title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: white;
+}
+
+.invite_card_close {
+    cursor: pointer;
+    color: rgba(255, 255, 255, 0.8);
+    transition: all 0.2s ease;
+    padding: 0.5rem;
+    border-radius: 50%;
+}
+
+.invite_card_close:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.1);
+}
+
+.invite_card_body {
+    background: linear-gradient(135deg, #202225 0%, #2C2F36 100%);
+    border-radius: 12px;
+    padding: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     margin-bottom: 1rem;
 }
 
-#primary_heading{
+.invite_card_link {
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    word-break: break-all;
+    color: #00D4AA;
+    flex: 1;
+    margin-right: 1rem;
+    font-weight: 500;
+}
+
+.invite_card_copy {
+    background: linear-gradient(135deg, #5865F2 0%, #7289DA 100%);
+    border: none;
+    border-radius: 8px;
+    padding: 0.6rem 1.2rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(88, 101, 242, 0.3);
+}
+
+.invite_card_copy:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(88, 101, 242, 0.5);
+}
+
+.invite_card_footer {
+    text-align: center;
+}
+
+.invite_card_footer button {
+    background: transparent;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    padding: 0.8rem 2rem;
+    color: #B9BBBE;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.invite_card_footer button:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    transform: translateY(-2px);
+}
+
+/* Legacy styles for compatibility */
+.modal_comps {
+    margin-bottom: .5rem;
+}
+
+#modal_main_wrap {
+    max-width: 450px;
+}
+
+#modal_header {
+    margin-bottom: 1rem;
+}
+
+#primary_heading {
     color: white;
     font-size: 1.5rem;
     font-weight: 650;
 }
 
-#channel_name{
+#channel_name {
     color: white;
     font-size: .8rem;
     font-weight: 600;
     margin-block: 1rem;
 }
 
-.input_div{
+.input_div {
     display: flex;
     align-items: center;
     background-color: #202225;
@@ -89,43 +319,42 @@
     padding: .5rem;
 }
 
-
-#channel_name input{
+#channel_name input {
     background-color: #202225;
     border: none;
     width: 100%;
     text-indent: .5rem;
-    caret-color: white;  
+    caret-color: white;
     font-size: 1rem;
-    color: #A0A3A6
+    color: #A0A3A6;
 }
 
-#channel_name input:focus{
+#channel_name input:focus {
     outline: none;
 }
 
-#channel_name input::placeholder{
+#channel_name input::placeholder {
     font-size: 1rem;
 }
 
-#modal_buttons{
+#modal_buttons {
     display: flex;
     justify-content: flex-end;
     gap: 1rem;
     align-items: center;
 }
 
-.buttons{
+.buttons {
     cursor: pointer;
 }
 
-#cancel_button{
+#cancel_button {
     background-color: inherit;
     border: none;
     color: white;
 }
 
-#create_button{
+#create_button {
     border: none;
     color: white;
     background-color: blue;
@@ -133,76 +362,6 @@
     border-radius: 3px;
 }
 
-#create_button:hover{
+#create_button:hover {
     background-color: rgb(71, 71, 243);
-}
-
-
-.invite_card {
-  background-color: #230069;      
-  border-radius: 12px;            
-  padding: 2rem 1.5rem;          
-  max-width: 360px;              
-  width: 90%;
-  margin: auto;                
-  color: #dcddde;              
-  position: relative;
-}
-
-.invite_card_header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 1rem;
-}
-
-.invite_card_title {
-  font-size: 1.25rem;
-  font-weight: 600;
-}
-
-.invite_card_close {
-  cursor: pointer;
-  color: white;
-}
-
-.invite_card_close:hover {
-  color: #fff;
-}
-
-.invite_card_body {
-  background-color: #63499c;
-  border-radius: 6px;
-  padding: 0.75rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.invite_card_link {
-  font-family: monospace;
-  font-size: 0.85rem;
-  word-break: break-all;
-  color: white;
-  flex: 1;
-  margin-right: 0.5rem;
-}
-
-.invite_card_copy {
-  background-color: #7289da;
-  border: none;
-  border-radius: 4px;
-  padding: 0.4rem 0.8rem;
-  font-size: 0.85rem;
-  color: #fff;
-  cursor: pointer;
-}
-
-.invite_card_copy:hover {
-  background-color: #5b6eae;
-}
-.invite_modal_content {
-  background-color: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
 }

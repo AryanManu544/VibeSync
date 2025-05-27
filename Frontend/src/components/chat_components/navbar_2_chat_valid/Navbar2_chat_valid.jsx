@@ -82,31 +82,45 @@ export default function Navbar2ChatValid() {
   }, [server_id, API, dispatch]);
 
   const createInviteLink = useCallback(async () => {
-    if (!serverDetails?.server_name) return;
-    try {
-      const res = await fetch(`${API}/create_invite_link`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-auth-token': localStorage.getItem('token'),
-        },
-        body: JSON.stringify({
-          inviter_name: username,
-          inviter_id: userId,
-          server_name: serverDetails.server_name,
-          server_id,
-          server_pic: serverDetails.server_pic,
-        }),
-      });
-      const data = await res.json();
-      if (data.status === 200) {
-        setInviteLink(`${FRONTEND}/invite/${data.invite_code}`);
-        setShowInviteModal(true);
-      }
-    } catch (err) {
-      console.error('Error creating invite link', err);
+  if (!serverDetails?.server_name) return;
+  
+  try {
+    console.log('Creating invite link for server:', server_id);
+    
+    const response = await fetch(`${API}/create_invite_link`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-auth-token': localStorage.getItem('token'),
+      },
+      body: JSON.stringify({
+        inviter_name: username,
+        inviter_id: userId,
+        server_name: serverDetails.server_name,
+        server_id: server_id,
+        server_pic: serverDetails.server_pic || null,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
-  }, [API, FRONTEND, serverDetails, server_id, userId, username]);
+
+    const data = await response.json();
+    console.log('Invite response:', data);
+
+    if (data.status === 200) {
+      setInviteLink(`${FRONTEND}/invite/${data.invite_code}`);
+      setShowInviteModal(true);
+    } else {
+      console.error('Failed to create invite:', data.message);
+      alert(data.message || 'Failed to create invite link');
+    }
+  } catch (err) {
+    console.error('Error creating invite link:', err);
+    alert('Failed to create invite link. Please try again.');
+  }
+}, [API, FRONTEND, serverDetails, server_id, userId, username]);
 
   const leaveOrDelete = useCallback(
     async (endpoint) => {
