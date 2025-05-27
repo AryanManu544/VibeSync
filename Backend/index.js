@@ -45,7 +45,7 @@ app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
 app.get('/', (req, res) => res.send('Hello World!'));
 app.use(routes);
-
+app.use('/uploads', express.static('uploads'));
 setupSocket(io);
 
 const PORT = process.env.PORT || 4000;
