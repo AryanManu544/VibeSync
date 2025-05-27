@@ -12,7 +12,6 @@ const chatSchema = new mongoose.Schema({
       sender_pic: String,
       sender_tag: String,
       timestamp: String,
-      image: String,
     }]
   }]
 });

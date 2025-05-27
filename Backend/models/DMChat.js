@@ -12,7 +12,6 @@ const dmChatSchema = new mongoose.Schema({
     content: String,
     timestamp: Number,
     edited: Boolean,
-    image: String,
   }]
 }, { timestamps: true });
 

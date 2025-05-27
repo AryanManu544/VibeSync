@@ -63,14 +63,9 @@ export default function DMChat() {
   const [input, setInput] = useState('');
   const [shiftPressed, setShiftPressed] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [showImageUpload, setShowImageUpload] = useState(false);
-  const [selectedImage, setSelectedImage] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
   
   const scrollRef = useRef();
-  const fileInputRef = useRef();
   const emojiPickerRef = useRef();
-  const imageUploadRef = useRef();
 
   useEffect(() => {
     const down = e => e.key === 'Shift' && setShiftPressed(true);
@@ -88,9 +83,6 @@ export default function DMChat() {
     const handleClickOutside = (event) => {
       if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target)) {
         setShowEmojiPicker(false);
-      }
-      if (imageUploadRef.current && !imageUploadRef.current.contains(event.target)) {
-        setShowImageUpload(false);
       }
     };
 
@@ -142,73 +134,7 @@ export default function DMChat() {
     });
   };
 
-  // Handle image file selection
-  const handleImageSelect = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) { 
-        alert('Image size must be less than 5MB');
-        return;
-      }
-      
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setImagePreview(e.target.result);
-        setSelectedImage(file);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  // Send image message
-  const sendImageMessage = async () => {
-    if (!selectedImage) return;
-
-    const formData = new FormData();
-    formData.append('image', selectedImage);
-    formData.append('to', peer.id);
-
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_API_BASE_URL || 'http://localhost:4000'}/upload_dm_image`,
-        {
-          method: 'POST',
-          headers: {
-            'x-auth-token': localStorage.getItem('token')
-          },
-          body: formData
-        }
-      );
-
-      const data = await response.json();
-      if (response.ok) {
-        const msg = {
-          senderId: me.id,
-          senderName: me.username,
-          senderPic: me.profile_pic,
-          content: '',
-          image: data.imageUrl,
-          timestamp: Date.now()
-        };
-        
-        setMessages(prev => [...prev, msg]);
-        socket.emit('dm_send', { to: peer.id, message: msg });
-        
-        // Reset image upload state
-        setSelectedImage(null);
-        setImagePreview(null);
-        setShowImageUpload(false);
-      } else {
-        alert('Failed to upload image');
-      }
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      alert('Error uploading image');
-    }
-  };
-
-  // Send a DM
-  const sendMessage = async e => {
+   const sendMessage = async e => {
     if (e.key !== 'Enter' || !input.trim()) return;
     
     const processedContent = parseEmojis(input.trim());
@@ -390,105 +316,6 @@ export default function DMChat() {
         <div ref={scrollRef} />
       </div>
 
-      {/* Image Upload Modal */}
-      {showImageUpload && (
-        <div style={{
-          position: 'absolute',
-          bottom: '70px',
-          left: '20px',
-          background: '#2f3136',
-          border: '1px solid #40444b',
-          borderRadius: '8px',
-          padding: '16px',
-          minWidth: '300px',
-          zIndex: 1000
-        }} ref={imageUploadRef}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-            <h3 style={{ color: '#fff', margin: 0, fontSize: '16px' }}>Upload Image</h3>
-            <CloseIcon 
-              style={{ color: '#b9bbbe', cursor: 'pointer' }}
-              onClick={() => {
-                setShowImageUpload(false);
-                setSelectedImage(null);
-                setImagePreview(null);
-              }}
-            />
-          </div>
-          
-          {imagePreview ? (
-            <div>
-              <img 
-                src={imagePreview} 
-                alt="Preview" 
-                style={{ 
-                  maxWidth: '250px', 
-                  maxHeight: '200px', 
-                  borderRadius: '4px',
-                  marginBottom: '12px'
-                }}
-              />
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <button
-                  onClick={sendImageMessage}
-                  style={{
-                    background: '#5865f2',
-                    color: '#fff',
-                    border: 'none',
-                    padding: '8px 16px',
-                    borderRadius: '4px',
-                    cursor: 'pointer'
-                  }}
-                >
-                  Send
-                </button>
-                <button
-                  onClick={() => {
-                    setSelectedImage(null);
-                    setImagePreview(null);
-                  }}
-                  style={{
-                    background: '#4f545c',
-                    color: '#fff',
-                    border: 'none',
-                    padding: '8px 16px',
-                    borderRadius: '4px',
-                    cursor: 'pointer'
-                  }}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageSelect}
-                ref={fileInputRef}
-                style={{ display: 'none' }}
-              />
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                style={{
-                  background: '#4f545c',
-                  color: '#fff',
-                  border: '2px dashed #72767d',
-                  padding: '20px',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  width: '100%',
-                  textAlign: 'center'
-                }}
-              >
-                Click to select an image
-              </button>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Emoji Picker */}
       {showEmojiPicker && (
         <div style={{
           position: 'absolute',
@@ -551,11 +378,6 @@ export default function DMChat() {
       )}
 
       <div className={stylesChat.inputBar}>
-        <AddCircleIcon 
-          className={stylesChat.addIcon} 
-          onClick={() => setShowImageUpload(!showImageUpload)}
-          style={{ cursor: 'pointer' }}
-        />
         <input
           type="text"
           placeholder={`Message ${peer.name}`}

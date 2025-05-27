@@ -73,13 +73,8 @@ function Valid_chat() {
   const [latest_message, setlatest_message] = useState(null);
   const [shiftPressed, setShiftPressed] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [showImageUpload, setShowImageUpload] = useState(false);
-  const [selectedImage, setSelectedImage] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
 
-  const fileInputRef = useRef();
   const emojiPickerRef = useRef();
-  const imageUploadRef = useRef();
 
   // Track Shift key
   useEffect(() => {
@@ -99,9 +94,6 @@ function Valid_chat() {
       if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target)) {
         setShowEmojiPicker(false);
       }
-      if (imageUploadRef.current && !imageUploadRef.current.contains(event.target)) {
-        setShowImageUpload(false);
-      }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
@@ -117,78 +109,6 @@ function Valid_chat() {
     return text.replace(/:(\w+):/g, (match, emojiName) => {
       return EMOJI_MAP[emojiName] || match;
     });
-  };
-
-  // Handle image file selection
-  const handleImageSelect = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        alert('Image size must be less than 5MB');
-        return;
-      }
-      
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setImagePreview(e.target.result);
-        setSelectedImage(file);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  // Send image message
-  const sendImageMessage = async () => {
-    if (!selectedImage) return;
-
-    const formData = new FormData();
-    formData.append('image', selectedImage);
-    formData.append('server_id', server_id);
-    formData.append('channel_id', channel_id);
-
-    try {
-      const response = await fetch(`${url}/upload_channel_image`, {
-        method: 'POST',
-        headers: {
-          'x-auth-token': localStorage.getItem('token')
-        },
-        body: formData
-      });
-
-      const data = await response.json();
-      if (response.ok) {
-        const timestamp = Date.now();
-        const message = {
-          content: '',
-          image: data.imageUrl,
-          sender_id: id,
-          sender_name: username,
-          sender_pic: profile_pic,
-          timestamp: timestamp
-        };
-
-        if (all_messages != null) {
-          setall_messages([...all_messages, message]);
-        } else {
-          setall_messages([message]);
-        }
-
-        socket.emit('send_image_message', channel_id, data.imageUrl, timestamp, username, tag, profile_pic);
-        
-        // Store image message
-        await store_image_message(data.imageUrl, timestamp);
-        
-        // Reset image upload state
-        setSelectedImage(null);
-        setImagePreview(null);
-        setShowImageUpload(false);
-      } else {
-        alert('Failed to upload image');
-      }
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      alert('Error uploading image');
-    }
   };
 
   function send_message(e) {
@@ -231,33 +151,6 @@ function Valid_chat() {
     }
   };
 
-  const store_image_message = async (imageUrl, timestamp) => {
-    const res = await fetch(`${url}/store_image`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-auth-token': localStorage.getItem('token'),
-      },
-      body: JSON.stringify({
-        message: '', 
-        image: imageUrl,
-        server_id, 
-        channel_id, 
-        channel_name,
-        timestamp, 
-        username, 
-        tag, 
-        id, 
-        profile_pic
-      }),
-    });
-    const data = await res.json();
-    if (data.status == 200) {
-      console.log('image message stored');
-    }
-  };
-
-  // Add emoji to input
   const addEmoji = (emojiKey) => {
     const emoji = EMOJI_MAP[emojiKey];
     setchat_message(prev => prev + emoji);
@@ -432,105 +325,6 @@ function Valid_chat() {
         <div id={valid_chat_css.chat_part}></div>
       </div>
 
-      {/* Image Upload Modal */}
-      {showImageUpload && (
-        <div style={{
-          position: 'absolute',
-          bottom: '70px',
-          left: '20px',
-          background: '#2f3136',
-          border: '1px solid #40444b',
-          borderRadius: '8px',
-          padding: '16px',
-          minWidth: '300px',
-          zIndex: 1000
-        }} ref={imageUploadRef}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-            <h3 style={{ color: '#fff', margin: 0, fontSize: '16px' }}>Upload Image</h3>
-            <CloseIcon 
-              style={{ color: '#b9bbbe', cursor: 'pointer' }}
-              onClick={() => {
-                setShowImageUpload(false);
-                setSelectedImage(null);
-                setImagePreview(null);
-              }}
-            />
-          </div>
-          
-          {imagePreview ? (
-            <div>
-              <img 
-                src={imagePreview} 
-                alt="Preview" 
-                style={{ 
-                  maxWidth: '250px', 
-                  maxHeight: '200px', 
-                  borderRadius: '4px',
-                  marginBottom: '12px'
-                }}
-              />
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <button
-                  onClick={sendImageMessage}
-                  style={{
-                    background: '#5865f2',
-                    color: '#fff',
-                    border: 'none',
-                    padding: '8px 16px',
-                    borderRadius: '4px',
-                    cursor: 'pointer'
-                  }}
-                >
-                  Send
-                </button>
-                <button
-                  onClick={() => {
-                    setSelectedImage(null);
-                    setImagePreview(null);
-                  }}
-                  style={{
-                    background: '#4f545c',
-                    color: '#fff',
-                    border: 'none',
-                    padding: '8px 16px',
-                    borderRadius: '4px',
-                    cursor: 'pointer'
-                  }}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageSelect}
-                ref={fileInputRef}
-                style={{ display: 'none' }}
-              />
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                style={{
-                  background: '#4f545c',
-                  color: '#fff',
-                  border: '2px dashed #72767d',
-                  padding: '20px',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  width: '100%',
-                  textAlign: 'center'
-                }}
-              >
-                Click to select an image
-              </button>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Emoji Picker */}
       {showEmojiPicker && (
         <div style={{
           position: 'absolute',
@@ -594,11 +388,6 @@ function Valid_chat() {
 
       <div id={valid_chat_css.bottom}>
         <div id={valid_chat_css.message_input}>
-          <AddCircleIcon 
-            htmlColor='#B9BBBE' 
-            onClick={() => setShowImageUpload(!showImageUpload)}
-            style={{ cursor: 'pointer' }}
-          />
           <input
             type="text"
             onKeyDown={e => send_message(e)}
