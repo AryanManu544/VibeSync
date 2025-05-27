@@ -2,12 +2,63 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import valid_chat_css from '../valid_main_chat/valid_chat_css.module.css';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
+import EmojiEmotionsIcon from '@mui/icons-material/EmojiEmotions';
 import TagIcon from '@mui/icons-material/Tag';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import CloseIcon from '@mui/icons-material/Close';
 import socket from '../../Socket/Socket';
 import logo from '../../../images/discord_logo_3.png';
 import { useParams } from 'react-router-dom';
+
+// Emoji data - same as DMChat
+const EMOJI_MAP = {
+  // Faces
+  'happy': '😊',
+  'sad': '😢',
+  'laugh': '😂',
+  'cry': '😭',
+  'angry': '😠',
+  'love': '😍',
+  'wink': '😉',
+  'cool': '😎',
+  'surprised': '😮',
+  'confused': '😕',
+  'tired': '😴',
+  'sick': '🤒',
+  'dizzy': '😵',
+  'money': '🤑',
+  'nerd': '🤓',
+  'party': '🥳',
+  'sob': '😭',
+  'rage': '🤬',
+  'skull': '💀',
+  'ghost': '👻',
+  'alien': '👽',
+  'robot': '🤖',
+  // Gestures
+  'thumbsup': '👍',
+  'thumbsdown': '👎',
+  'clap': '👏',
+  'wave': '👋',
+  'peace': '✌️',
+  'ok': '👌',
+  'fire': '🔥',
+  'star': '⭐',
+  'heart': '❤️',
+  'broken_heart': '💔',
+  'sparkles': '✨',
+  'tada': '🎉',
+  'rocket': '🚀',
+  'bomb': '💣',
+  'zzz': '💤'
+};
+
+const EMOJI_CATEGORIES = {
+  'Smileys': ['happy', 'sad', 'laugh', 'cry', 'angry', 'love', 'wink', 'cool', 'surprised', 'confused', 'tired', 'sick', 'dizzy', 'money', 'nerd', 'party', 'sob', 'rage'],
+  'Objects': ['skull', 'ghost', 'alien', 'robot', 'fire', 'star', 'heart', 'broken_heart', 'sparkles', 'tada', 'rocket', 'bomb', 'zzz'],
+  'Gestures': ['thumbsup', 'thumbsdown', 'clap', 'wave', 'peace', 'ok']
+};
 
 function Valid_chat() {
   const url = process.env.REACT_APP_URL;
@@ -24,6 +75,14 @@ function Valid_chat() {
   const [all_messages, setall_messages] = useState(null);
   const [latest_message, setlatest_message] = useState(null);
   const [shiftPressed, setShiftPressed] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showImageUpload, setShowImageUpload] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+
+  const fileInputRef = useRef();
+  const emojiPickerRef = useRef();
+  const imageUploadRef = useRef();
 
   // Track Shift key
   useEffect(() => {
@@ -37,13 +96,107 @@ function Valid_chat() {
     };
   }, []);
 
+  // Close pickers when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target)) {
+        setShowEmojiPicker(false);
+      }
+      if (imageUploadRef.current && !imageUploadRef.current.contains(event.target)) {
+        setShowImageUpload(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   useEffect(() => {
     socket.emit('join_chat', channel_id);
   }, [channel_id]);
 
+  // Convert emoji shortcodes to emojis
+  const parseEmojis = (text) => {
+    return text.replace(/:(\w+):/g, (match, emojiName) => {
+      return EMOJI_MAP[emojiName] || match;
+    });
+  };
+
+  // Handle image file selection
+  const handleImageSelect = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        alert('Image size must be less than 5MB');
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target.result);
+        setSelectedImage(file);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Send image message
+  const sendImageMessage = async () => {
+    if (!selectedImage) return;
+
+    const formData = new FormData();
+    formData.append('image', selectedImage);
+    formData.append('server_id', server_id);
+    formData.append('channel_id', channel_id);
+
+    try {
+      const response = await fetch(`${url}/upload_channel_image`, {
+        method: 'POST',
+        headers: {
+          'x-auth-token': localStorage.getItem('token')
+        },
+        body: formData
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        const timestamp = Date.now();
+        const message = {
+          content: '',
+          image: data.imageUrl,
+          sender_id: id,
+          sender_name: username,
+          sender_pic: profile_pic,
+          timestamp: timestamp
+        };
+
+        if (all_messages != null) {
+          setall_messages([...all_messages, message]);
+        } else {
+          setall_messages([message]);
+        }
+
+        socket.emit('send_image_message', channel_id, data.imageUrl, timestamp, username, tag, profile_pic);
+        
+        // Store image message
+        await store_image_message(data.imageUrl, timestamp);
+        
+        // Reset image upload state
+        setSelectedImage(null);
+        setImagePreview(null);
+        setShowImageUpload(false);
+      } else {
+        alert('Failed to upload image');
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      alert('Error uploading image');
+    }
+  };
+
   function send_message(e) {
     if (e.code === 'Enter') {
-      let message_to_send = chat_message;
+      let message_to_send = parseEmojis(chat_message);
       let timestamp = Date.now();
       setchat_message('');
       const message = {
@@ -79,6 +232,39 @@ function Valid_chat() {
     if (data.status == 200) {
       console.log('message stored');
     }
+  };
+
+  const store_image_message = async (imageUrl, timestamp) => {
+    const res = await fetch(`${url}/store_message`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-auth-token': localStorage.getItem('token'),
+      },
+      body: JSON.stringify({
+        message: '', 
+        image: imageUrl,
+        server_id, 
+        channel_id, 
+        channel_name,
+        timestamp, 
+        username, 
+        tag, 
+        id, 
+        profile_pic
+      }),
+    });
+    const data = await res.json();
+    if (data.status == 200) {
+      console.log('image message stored');
+    }
+  };
+
+  // Add emoji to input
+  const addEmoji = (emojiKey) => {
+    const emoji = EMOJI_MAP[emojiKey];
+    setchat_message(prev => prev + emoji);
+    setShowEmojiPicker(false);
   };
 
   useEffect(() => {
@@ -127,6 +313,8 @@ function Valid_chat() {
     const newContent = window.prompt('Edit your message:', target.content);
     if (!newContent || newContent === target.content) return;
 
+    const processedContent = parseEmojis(newContent);
+
     try {
       const res = await fetch(`${url}/edit_message`, {
         method: 'POST',
@@ -134,7 +322,7 @@ function Valid_chat() {
           'Content-Type': 'application/json',
           'x-auth-token': localStorage.getItem('token')
         },
-        body: JSON.stringify({ channel_id, timestamp, newContent })  // <-- fix here
+        body: JSON.stringify({ channel_id, timestamp, newContent: processedContent })
       });
 
       const data = await res.json();
@@ -142,7 +330,7 @@ function Valid_chat() {
         setall_messages(prev =>
           prev.map(m =>
             m.timestamp === timestamp
-              ? { ...m, content: newContent, edited: true }
+              ? { ...m, content: processedContent, edited: true }
               : m
           )
         );
@@ -166,7 +354,7 @@ function Valid_chat() {
           'Content-Type': 'application/json',
           'x-auth-token': localStorage.getItem('token')
         },
-        body: JSON.stringify({ channel_id, timestamp })  // ✅ Make sure this matches backend
+        body: JSON.stringify({ channel_id, timestamp })
       });
 
       const data = await res.json();
@@ -182,10 +370,8 @@ function Valid_chat() {
     }
   };
 
-
-
   return (
-    <div className={valid_chat_css.mainchat}>
+    <div className={valid_chat_css.mainchat} style={{ position: 'relative' }}>
       <div id={valid_chat_css.top}>
         <div id={valid_chat_css.welcome_part}>
           <div id={valid_chat_css.tag}>
@@ -223,7 +409,23 @@ function Valid_chat() {
                       )}
                     </div>
                     <div id={valid_chat_css.message_right_bottom}>
-                      {elem.content} {elem.edited && <em style={{ fontSize: '0.75rem' }}>(edited)</em>}
+                      {elem.image ? (
+                        <img 
+                          src={elem.image} 
+                          alt="Shared image" 
+                          style={{ 
+                            maxWidth: '400px', 
+                            maxHeight: '300px', 
+                            borderRadius: '8px',
+                            cursor: 'pointer'
+                          }}
+                          onClick={() => window.open(elem.image, '_blank')}
+                        />
+                      ) : (
+                        <>
+                          {elem.content} {elem.edited && <em style={{ fontSize: '0.75rem' }}>(edited)</em>}
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -233,15 +435,188 @@ function Valid_chat() {
         <div id={valid_chat_css.chat_part}></div>
       </div>
 
+      {/* Image Upload Modal */}
+      {showImageUpload && (
+        <div style={{
+          position: 'absolute',
+          bottom: '70px',
+          left: '20px',
+          background: '#2f3136',
+          border: '1px solid #40444b',
+          borderRadius: '8px',
+          padding: '16px',
+          minWidth: '300px',
+          zIndex: 1000
+        }} ref={imageUploadRef}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+            <h3 style={{ color: '#fff', margin: 0, fontSize: '16px' }}>Upload Image</h3>
+            <CloseIcon 
+              style={{ color: '#b9bbbe', cursor: 'pointer' }}
+              onClick={() => {
+                setShowImageUpload(false);
+                setSelectedImage(null);
+                setImagePreview(null);
+              }}
+            />
+          </div>
+          
+          {imagePreview ? (
+            <div>
+              <img 
+                src={imagePreview} 
+                alt="Preview" 
+                style={{ 
+                  maxWidth: '250px', 
+                  maxHeight: '200px', 
+                  borderRadius: '4px',
+                  marginBottom: '12px'
+                }}
+              />
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  onClick={sendImageMessage}
+                  style={{
+                    background: '#5865f2',
+                    color: '#fff',
+                    border: 'none',
+                    padding: '8px 16px',
+                    borderRadius: '4px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Send
+                </button>
+                <button
+                  onClick={() => {
+                    setSelectedImage(null);
+                    setImagePreview(null);
+                  }}
+                  style={{
+                    background: '#4f545c',
+                    color: '#fff',
+                    border: 'none',
+                    padding: '8px 16px',
+                    borderRadius: '4px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageSelect}
+                ref={fileInputRef}
+                style={{ display: 'none' }}
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                style={{
+                  background: '#4f545c',
+                  color: '#fff',
+                  border: '2px dashed #72767d',
+                  padding: '20px',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  width: '100%',
+                  textAlign: 'center'
+                }}
+              >
+                Click to select an image
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Emoji Picker */}
+      {showEmojiPicker && (
+        <div style={{
+          position: 'absolute',
+          bottom: '70px',
+          right: '60px',
+          background: 'linear-gradient(to bottom,rgb(78, 18, 107),rgb(136, 48, 208))',
+          border: '1px solid #40444b',
+          borderRadius: '8px',
+          padding: '12px',
+          width: '320px',
+          maxHeight: '400px',
+          overflowY: 'auto',
+          zIndex: 1000
+        }} ref={emojiPickerRef}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+            <h3 style={{ color: '#fff', margin: 0, fontSize: '14px' }}>Emojis</h3>
+            <CloseIcon 
+              style={{ color: '#b9bbbe', cursor: 'pointer', fontSize: '18px' }}
+              onClick={() => setShowEmojiPicker(false)}
+            />
+          </div>
+          
+          {Object.entries(EMOJI_CATEGORIES).map(([category, emojis]) => (
+            <div key={category} style={{ marginBottom: '16px' }}>
+              <h4 style={{ color: '#b9bbbe', fontSize: '12px', margin: '0 0 8px 0' }}>{category}</h4>
+              <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: 'repeat(8, 1fr)', 
+                gap: '4px' 
+              }}>
+                {emojis.map(emojiKey => (
+                  <div
+                    key={emojiKey}
+                    onClick={() => addEmoji(emojiKey)}
+                    style={{
+                      fontSize: '20px',
+                      cursor: 'pointer',
+                      padding: '4px',
+                      borderRadius: '4px',
+                      textAlign: 'center',
+                      transition: 'background-color 0.2s'
+                    }}
+                    onMouseEnter={(e) => e.target.style.backgroundColor = '#40444b'}
+                    onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                    title={`:${emojiKey}:`}
+                  >
+                    {EMOJI_MAP[emojiKey]}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+          
+          <div style={{ marginTop: '12px', padding: '8px', background: '#40444b', borderRadius: '4px' }}>
+            <p style={{ color: '#b9bbbe', fontSize: '11px', margin: 0 }}>
+              💡 Tip: You can also type emoji codes like :happy: or :fire: directly in your message!
+            </p>
+          </div>
+        </div>
+      )}
+
       <div id={valid_chat_css.bottom}>
         <div id={valid_chat_css.message_input}>
-          <AddCircleIcon htmlColor='#B9BBBE' />
+          <AddCircleIcon 
+            htmlColor='#B9BBBE' 
+            onClick={() => setShowImageUpload(!showImageUpload)}
+            style={{ cursor: 'pointer' }}
+          />
           <input
             type="text"
             onKeyDown={e => send_message(e)}
             value={chat_message}
             onChange={e => setchat_message(e.target.value)}
             placeholder={`Message #${channel_name}`}
+          />
+          <EmojiEmotionsIcon 
+            htmlColor='#B9BBBE'
+            style={{ 
+              cursor: 'pointer', 
+              marginLeft: '8px',
+              fontSize: '24px'
+            }}
+            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
           />
         </div>
       </div>
