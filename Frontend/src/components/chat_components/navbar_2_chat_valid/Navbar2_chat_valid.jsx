@@ -87,7 +87,7 @@ export default function Navbar2ChatValid() {
   try {
     console.log('Creating invite link for server:', server_id);
     
-    const response = await fetch(`${API}/create_invite_link`, {
+    const response = await fetch(`${API}/invite/create_invite_link`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

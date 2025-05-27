@@ -16,33 +16,28 @@ import { useParams } from 'react-router-dom';
 
 /**
  * @param {Object} props
- * @param {function} props.new_req_received - callback to refresh parent data
- * @param {Object} props.elem - category object with channels
+ * @param {function} props.new_req_received 
+ * @param {Object} props.elem 
  */
 export default function ServerDetails({ new_req_received = () => {}, elem }) {
   const dispatch = useDispatch();
   const { server_id } = useParams();
   const url = process.env.REACT_APP_URL;
 
-  // UI state
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showChannels, setShowChannels] = useState(true);
   const [selectedChannelType, setSelectedChannelType] = useState('text');
   const [newChannelName, setNewChannelName] = useState('');
   const [isCreating, setIsCreating] = useState(false);
 
-  // Local channels state for immediate UI update
   const [channels, setChannels] = useState(elem.channels || []);
 
-  // Sync local state when prop changes
   useEffect(() => {
     setChannels(elem.channels || []);
   }, [elem.channels]);
 
-  // Toggle channels visibility
   const toggleChannels = () => setShowChannels(v => !v);
 
-  // Open/close "create channel" modal
   const openModal = () => setShowCreateModal(true);
   const closeModal = () => {
     setShowCreateModal(false);
@@ -51,7 +46,6 @@ export default function ServerDetails({ new_req_received = () => {}, elem }) {
     setIsCreating(false);
   };
 
-  // Create a new channel
   const createChannel = async () => {
     if (!newChannelName.trim()) return;
     setIsCreating(true);
@@ -80,7 +74,6 @@ export default function ServerDetails({ new_req_received = () => {}, elem }) {
     }
   };
 
-  // Delete an existing channel
   const deleteChannel = async (channelId) => {
     const confirmDelete = window.confirm('Delete this channel?');
     if (!confirmDelete) return;
@@ -95,7 +88,6 @@ export default function ServerDetails({ new_req_received = () => {}, elem }) {
       });
       const data = await res.json();
       if (data.status === 200) {
-        // remove from local UI immediately
         setChannels(prev => prev.filter(c => c._id !== channelId));
         new_req_received();
       }
@@ -104,7 +96,6 @@ export default function ServerDetails({ new_req_received = () => {}, elem }) {
     }
   };
 
-  // Switch active channel
   const selectChannel = (type, name, id) => {
     if (type === 'text') {
       dispatch(change_page_name(name));
@@ -142,13 +133,25 @@ export default function ServerDetails({ new_req_received = () => {}, elem }) {
         <div className={servercss.modal_main}>
           <h3>Create Channel in "{elem.category_name}"</h3>
           <div className={servercss.channel_type_section}>
-            <label>
-              <Radio checked={selectedChannelType === 'text'} value="text" onChange={() => setSelectedChannelType('text')} />
-              Text
+            <label data-type="Text">
+              <Radio 
+                checked={selectedChannelType === 'text'} 
+                value="text" 
+                onChange={() => setSelectedChannelType('text')}
+                sx={{
+                  display: 'none'
+                }}
+              />
             </label>
-            <label>
-              <Radio checked={selectedChannelType === 'voice'} value="voice" onChange={() => setSelectedChannelType('voice')} />
-              Voice
+            <label data-type="Voice">
+              <Radio 
+                checked={selectedChannelType === 'voice'} 
+                value="voice" 
+                onChange={() => setSelectedChannelType('voice')}
+                sx={{
+                  display: 'none'
+                }}
+              />
             </label>
           </div>
           <div className={servercss.input_div}>
@@ -158,10 +161,17 @@ export default function ServerDetails({ new_req_received = () => {}, elem }) {
               onChange={e => setNewChannelName(e.target.value)}
               placeholder="new-channel"
               disabled={isCreating}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter' && !isCreating && newChannelName.trim()) {
+                  createChannel();
+                }
+              }}
             />
           </div>
           <div className={servercss.modal_buttons}>
-            <button onClick={closeModal} disabled={isCreating}>Cancel</button>
+            <button onClick={closeModal} disabled={isCreating}>
+              Cancel
+            </button>
             <button onClick={createChannel} disabled={isCreating || !newChannelName.trim()}>
               {isCreating ? 'Creating…' : 'Create'}
             </button>

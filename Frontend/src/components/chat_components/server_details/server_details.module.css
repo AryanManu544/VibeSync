@@ -37,6 +37,7 @@
     width: 100%;
     display: flex;
     align-items: center;
+    justify-content: space-between;
     height: 100%;
     cursor: pointer;
     margin-left: 1rem;
@@ -49,44 +50,380 @@
     background-color: #230069;
 }
 
-
-#modal_main_wrap{
-    max-width: 450px;
+.channel_left {
+    display: flex;
+    align-items: center;
+    gap: .2rem;
+    flex: 1;
 }
 
-
-.modal_main{
-    background-color: #230069;
-    padding: 1rem;    
+.channel_name {
+    margin-left: 0.5rem;
 }
 
-.modal_comps{
+.channel_delete {
+    margin-right: 1rem;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.channels_wrap:hover .channel_delete {
+    opacity: 1;
+}
+
+.serverPanel {
+  background-color: #230069;
+  max-height: 94vh;       
+  width: 100%;       
+  overflow-y: auto;   
+  flex-direction: column;
+  box-shadow: inset -5px 0 20px rgba(0, 0, 0, 0.3); 
+}
+
+/* Enhanced Modal Styles */
+#modal_main_wrap {
+    max-width: 480px !important;
+}
+
+#modal_main_wrap .modal-content {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+#modal_main_wrap .modal-dialog {
+    margin: 1.75rem auto !important;
+}
+
+.modal_main {
+    background: linear-gradient(145deg, #2a1458, #1d0940) !important;
+    border-radius: 20px !important;
+    padding: 32px !important;
+    box-shadow: 
+        0 25px 50px rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(255, 255, 255, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+    position: relative;
+    overflow: hidden;
+    animation: modalSlideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.modal_main::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+}
+
+@keyframes modalSlideUp {
+    from {
+        transform: translateY(30px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Modal Header */
+.modal_main h3 {
+    color: #ffffff !important;
+    font-size: 24px !important;
+    font-weight: 700 !important;
+    margin-bottom: 28px !important;
+    text-align: center;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Channel Type Section */
+.channel_type_section {
+    margin-bottom: 24px;
+    position: relative;
+}
+
+.channel_type_section::before {
+    content: 'Channel Type';
+    display: block;
+    color: #e1e7f5;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.channel_type_section {
+    display: flex;
+    gap: 12px;
+}
+
+.channel_type_section label {
+    flex: 1;
+    position: relative;
+    cursor: pointer;
+    margin: 0 !important;
+}
+
+.channel_type_section label input[type="radio"] {
+    opacity: 0;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    cursor: pointer;
+    z-index: 2;
+}
+
+.channel_type_section label {
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 80px;
+}
+
+.channel_type_section label::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.5s;
+    z-index: 1;
+}
+
+.channel_type_section label:hover::before {
+    left: 100%;
+}
+
+.channel_type_section label:hover {
+    transform: translateY(-2px);
+    border-color: rgba(139, 92, 246, 0.5);
+    box-shadow: 0 8px 25px rgba(139, 92, 246, 0.2);
+}
+
+.channel_type_section label:has(input[type="radio"]:checked) {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(99, 102, 241, 0.2));
+    border-color: #8b5cf6;
+    box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.2);
+}
+
+.channel_type_section label::after {
+    content: attr(data-type);
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 16px;
+    z-index: 3;
+    position: relative;
+}
+
+/* Add icons before text */
+.channel_type_section label[data-type="Text"]::after {
+    content: "# Text";
+}
+
+.channel_type_section label[data-type="Voice"]::after {
+    content: "🔊 Voice";
+}
+
+/* Input Section */
+.input_div {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    margin-top: 8px !important;
+    border-radius: 12px !important;
+    padding: 16px 20px !important;
+    transition: all 0.3s ease;
+    position: relative;
+    margin-bottom: 32px !important;
+}
+
+.input_div::before {
+    content: 'Channel Name';
+    position: absolute;
+    top: -30px;
+    left: -5px;
+    background: linear-gradient(145deg, #2a1458, #1d0940);
+    color: #e1e7f5;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 0 8px;
+    z-index: 1;
+}
+
+.input_div:focus-within {
+    border-color: #8b5cf6;
+    background: rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.2);
+}
+
+.input_div input {
+    background: transparent !important;
+    border: none !important;
+    width: 100% !important;
+    text-indent: 0 !important;
+    caret-color: white !important;
+    font-size: 16px !important;
+    font-weight: 500 !important;
+    color: #ffffff !important;
+    outline: none !important;
+}
+
+.input_div input::placeholder {
+    color: #6b7280 !important;
+    font-weight: 400 !important;
+    font-size: 16px !important;
+}
+
+.input_div input:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Modal Buttons */
+.modal_buttons {
+    display: flex !important;
+    gap: 12px !important;
+    justify-content: flex-end !important;
+    align-items: center !important;
+}
+
+.modal_buttons button {
+    padding: 12px 24px !important;
+    border: none !important;
+    border-radius: 10px !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    min-width: 100px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.modal_buttons button::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    transform: translate(-50%, -50%);
+}
+
+.modal_buttons button:active::before {
+    width: 200px;
+    height: 200px;
+}
+
+/* Cancel Button */
+.modal_buttons button:first-child {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #d1d5db !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+.modal_buttons button:first-child:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.15) !important;
+    color: #ffffff !important;
+    transform: translateY(-1px);
+}
+
+/* Create Button */
+.modal_buttons button:last-child {
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed) !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4) !important;
+}
+
+.modal_buttons button:last-child:hover:not(:disabled) {
+    background: linear-gradient(135deg, #7c3aed, #6d28d9) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 25px rgba(139, 92, 246, 0.5) !important;
+}
+
+.modal_buttons button:last-child:disabled {
+    background: #6b7280 !important;
+    color: #9ca3af !important;
+    cursor: not-allowed !important;
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+/* Loading Animation */
+.modal_buttons button:last-child:disabled::after {
+    content: '';
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: #ffffff;
+    animation: buttonSpin 0.8s linear infinite;
+    margin-left: 8px;
+    vertical-align: middle;
+}
+
+@keyframes buttonSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Modal backdrop enhancement */
+#modal_main_wrap .modal-backdrop {
+    backdrop-filter: blur(8px) !important;
+    background-color: rgba(0, 0, 0, 0.7) !important;
+}
+
+/* Legacy styles for compatibility */
+.modal_comps {
     margin-bottom: .5rem;
-    background-color: #230069;
+    background-color: transparent;
 }
 
-#modal_header{
+#modal_header {
     margin-bottom: 1rem;
 }
 
-#primary_heading{
+#primary_heading {
     color: white;
     font-size: 1.5rem;
     font-weight: 650;
 }
 
-#secondary_heading{
+#secondary_heading {
     color: #A0A3A6;
     font-size: .8rem;
 }
 
-#channel_type{
+#channel_type {
     color: #bcbfc3;
     font-weight: 600;
     font-size: .9rem;
 }
 
-.channel_type_wrap{
+.channel_type_wrap {
     display: grid;
     grid-template-columns: 10% 80% 20%;
     align-items: center;
@@ -97,72 +434,36 @@
     cursor: pointer;
 }
 
-.channel_type_wrap:hover{
+.channel_type_wrap:hover {
     background-color: #230069;
 }
 
-.channel_type_text{
+.channel_type_text {
     color: white;
 }
 
-.channel_type_disc_text{
+.channel_type_disc_text {
     font-size: .9rem;
 }
 
-
-#channel_name{
+#channel_name {
     color: white;
     font-size: .8rem;
     font-weight: 600;
     margin-block: 1rem;
-    
 }
 
-.input_div{
-    display: flex;
-    align-items: center;
-    background-color: #230069;
-    margin-top: .5rem;
-    border-radius: 5px;
-    padding: .5rem;
-}
-
-#channel_name input{
-    background-color: #230069;
-    border: none;
-    width: 100%;
-    text-indent: .5rem;
-    caret-color: white;  
-    font-size: 1rem;
-    color: #A0A3A6
-}
-
-#channel_name input:focus{
-    outline: none;
-}
-
-#channel_name input::placeholder{
-    font-size: 1rem;
-}
-
-#modal_buttons{
-    display: flex;
-    justify-content: flex-end;
-    gap: 1rem;
-    align-items: center;
-}
-
-.buttons{
+.buttons {
     cursor: pointer;
 }
 
-#cancel_button{
+#cancel_button {
     background-color: inherit;
     border: none;
     color: white;
 }
 
-#create_button{
+#create_button {
     border: none;
     color: white;
     background-color: rgb(83, 7, 177);
@@ -170,15 +471,6 @@
     border-radius: 3px;
 }
 
-#create_button:hover{
+#create_button:hover {
     background-color: rgb(120, 71, 243);
-}
-
-.serverPanel {
-  background-color: #230069;
-  max-height: 94vh;       
-  width:   100%;       
-  overflow-y: fit;   
-  flex-direction: column;
-  box-shadow: inset -5px 0 20px rgba(0, 0, 0, 0.3); 
 }
