@@ -7,7 +7,7 @@
     height: 100%;
     display: flex;
     justify-content: center;
-    border-left: 1px solid #565757;
+    box-shadow: inset 4px 0 20px rgba(0, 0, 0, 0.4); 
 }
 
 #main{

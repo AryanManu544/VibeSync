@@ -1,11 +1,11 @@
 .main{
     height: 100%;
     background-color: #36393F;
-    border-right: 1px solid hsla(217,calc((1, 1)*7.6%),33.5%,0.48);
+    border-right: none !important;
     display: block;
-    /* this justify center is here for offline case it activates only when display is changed to flex through react inline css */
     justify-content: center;
     align-items: center;
+    box-shadow: none !important;
 }
 .notification{
     position: absolute;

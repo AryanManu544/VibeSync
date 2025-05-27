@@ -84,3 +84,14 @@
   background-color: #31007b;
 }
 
+.top_nav_comps,
+.right_nav_comps,
+#middle_part {
+    background-image:
+    linear-gradient(
+      to bottom,
+      #31007b 0%,
+      #31007b calc(100% - 12px), 
+      rgba(0,0,0,0.3) 100%
+    );
+}

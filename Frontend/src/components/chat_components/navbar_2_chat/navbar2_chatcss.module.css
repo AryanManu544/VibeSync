@@ -3,5 +3,5 @@
     grid-template-rows: 50px auto;
     background-color: #230069;
     height: 94vh;
-    box-shadow: inset -10px 0 20px rgba(0, 0, 0, 0.4); 
+    box-shadow: inset -5px 0 20px rgba(0, 0, 0, 0.3) , 5px 0 20px rgba(0, 0, 0, 0.3);
 }

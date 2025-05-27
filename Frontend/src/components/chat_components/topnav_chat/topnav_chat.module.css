@@ -1,11 +1,22 @@
 .main_wrap{
-    display: flex;
-    width: 100%;
-    justify-content: space-between;
-    align-items: center;
-    margin-inline: 1rem;
-    color: #B9BBBE;
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+  /* switch margin to padding so the shadow actually bleeds to the very edge */
+  padding-inline: 1rem;
+  color: #B9BBBE;
+
+  /* three insets: bottom, left, right */
+  background-image:
+    linear-gradient(
+      to bottom,
+      #31007b 0%,
+      #31007b calc(100% - 12px), 
+      rgba(0,0,0,0.3) 100%
+    );
 }
+
 
 #left{
     display: flex;
