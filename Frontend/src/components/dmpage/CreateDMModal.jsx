@@ -1,7 +1,6 @@
-/* CreateDMModal.jsx */
 import React, { useState, useEffect } from 'react';
-import { Modal, Button, ListGroup, Spinner, Image } from 'react-bootstrap';
 import profile_pic_default from '../../images/vibesync_logo_2.png';
+import styles from './CreateDMModal.module.css'; // Assuming you have a CSS module
 
 export default function CreateDMModal({ show, handleClose, onCreateDM }) {
   const [selectedIds, setSelectedIds] = useState([]);
@@ -9,7 +8,6 @@ export default function CreateDMModal({ show, handleClose, onCreateDM }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Fetch friends from backend when modal opens
   useEffect(() => {
     if (!show) return;
     const fetchFriends = async () => {
@@ -25,7 +23,7 @@ export default function CreateDMModal({ show, handleClose, onCreateDM }) {
         const data = await res.json();
         setFriends(data.friends || []);
       } catch (err) {
-        console.error('get_friends error', err);
+        console.error(err);
         setError('Could not load friends');
       } finally {
         setLoading(false);
@@ -34,9 +32,9 @@ export default function CreateDMModal({ show, handleClose, onCreateDM }) {
     fetchFriends();
   }, [show]);
 
-  const toggleSelection = id => {
-    setSelectedIds(ids =>
-      ids.includes(id) ? ids.filter(x => x !== id) : [...ids, id]
+  const toggleSelection = (id) => {
+    setSelectedIds((ids) =>
+      ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]
     );
   };
 
@@ -45,68 +43,82 @@ export default function CreateDMModal({ show, handleClose, onCreateDM }) {
     try {
       await onCreateDM(selectedIds);
       setSelectedIds([]);
+      handleClose();
     } catch (err) {
       console.error('Create DM failed', err);
     }
   };
 
+  if (!show) return null;
+
   return (
-  <div className='modal-container'>
-    <Modal show={show} onHide={handleClose} centered>
-      <Modal.Header closeButton>
-        <Modal.Title>New Direct Message</Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
+    <div className={styles.modalOverlay} onClick={handleClose}>
+      <div
+        className={styles.modal}
+        onClick={e => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="create-dm-title"
+      >
+        <h2 id="create-dm-title">New Direct Message</h2>
+
         {loading ? (
-          <div className="d-flex justify-content-center">
-            <Spinner animation="border" />
-          </div>
+          <div style={{ textAlign: 'center' }}>Loading...</div>
         ) : error ? (
-          <div className="text-danger text-center">{error}</div>
+          <div style={{ color: 'red', textAlign: 'center' }}>{error}</div>
         ) : (
-          <ListGroup>
-            {friends.map(f => (
-              <ListGroup.Item
-                key={f.id}
-                action
-                active={selectedIds.includes(f.id)}
-                onClick={() => toggleSelection(f.id)}
-                className="d-flex align-items-center"
-              >
-                <Image
-                  src={f.profile_pic || '/default_avatar.png'}
-                  roundedCircle
-                  width={32}
-                  height={32}
-                  className="me-2"
-                />
-                <div>
-                  <div className="fw-bold">{f.name || f.username}</div>
-                  <div className="text-muted small">#{f.tag}</div>
-                </div>
-              </ListGroup.Item>
-            ))}
+          <div className={styles.friendList}>
             {friends.length === 0 && (
-              <div className="text-muted text-center py-2">
+              <div style={{ color: '#999', textAlign: 'center' }}>
                 You have no friends to message.
               </div>
             )}
-          </ListGroup>
+            {friends.map((f, idx) => {
+              const friendId = f?.id || f?._id || idx;
+              return (
+                <div
+                  key={friendId}
+                  className={`${styles.friendItem} ${selectedIds.includes(friendId) ? styles.selected : ''}`}
+                  onClick={() => toggleSelection(friendId)}
+                >
+                  <img
+                    src={f?.profile_pic || profile_pic_default}
+                    alt={`${f?.name || f?.username || 'User'} avatar`}
+                    className={styles.friendAvatar}
+                  />
+                  <div className={styles.friendName}>
+                    <div style={{ fontWeight: 'bold' }}>
+                      {f?.name || f?.username || 'Unknown'}
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#bbb' }}>
+                      #{f?.tag || '0000'}
+                    </div>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.includes(friendId)}
+                    readOnly
+                    style={{ marginLeft: 10 }}
+                  />
+                </div>
+              );
+            })}
+          </div>
         )}
-      </Modal.Body>
-      <Modal.Footer>
-        <Button variant="secondary" onClick={handleClose}>
-          Cancel
-        </Button>
-        <Button
-          variant="primary"
-          disabled={!selectedIds.length}
-          onClick={handleSubmit}
-        >
-          Create DM
-        </Button>
-      </Modal.Footer>
-    </Modal>
-  </div>
+
+        <div className={styles.modalActions}>
+          <button className={styles.cancelButton} onClick={handleClose}>
+            Cancel
+          </button>
+          <button
+            className={styles.createButton}
+            disabled={selectedIds.length === 0}
+            onClick={handleSubmit}
+          >
+            Create DM
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
