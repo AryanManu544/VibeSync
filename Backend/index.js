@@ -40,8 +40,8 @@ const io = new Server(server, {
 connectDB();
 
 app.use(cors(corsOptions));
-app.use(express.json({ limit: '10kb' }));
-app.use(express.urlencoded({ extended: true, limit: '10kb' }));
+app.use(express.json({ limit: '5mb' }));
+app.use(express.urlencoded({ extended: true, limit: '5mb' }));
 
 app.get('/', (req, res) => res.send('Hello World!'));
 app.use(routes);
