@@ -87,7 +87,7 @@ const storeImageMessage = async (req, res) => {
 const storeDMImage = async (req, res) => {
   try {
     const { to, senderName, senderPic, image, timestamp } = req.body;
-    const senderId = req.user.id; // Assuming you have user info from auth middleware
+    const senderId = req.userId;
 
     if (!to || !senderName || !image || !timestamp) {
       return res.status(400).json({
@@ -195,7 +195,7 @@ const getMessages = async (req, res) => {
 const getDMHistory = async (req, res) => {
   try {
     const { user2 } = req.body;
-    const user1 = req.user.id; // From auth middleware
+    const user1 = req.userId;
 
     if (!user2) {
       return res.status(400).json({
