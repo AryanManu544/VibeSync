@@ -9,4 +9,5 @@ router.use(require('./dmRoutes'));
 router.use('/invite', require('./inviteRoutes'));
 router.use(require('./chatRoutes'));
 router.use(require('./roleRoutes'));
+router.use(require('./imageRoutes'));
 module.exports = router;
