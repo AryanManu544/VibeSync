@@ -73,8 +73,10 @@ function Valid_chat() {
   const [latest_message, setlatest_message] = useState(null);
   const [shiftPressed, setShiftPressed] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const emojiPickerRef = useRef();
+  const fileInputRef = useRef();
 
   // Track Shift key
   useEffect(() => {
@@ -111,8 +113,87 @@ function Valid_chat() {
     });
   };
 
+  // Handle image upload to Cloudinary
+  const handleImageUpload = async (file) => {
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET); // Make sure you have this in your .env
+      
+      const response = await fetch(`https://api.cloudinary.com/v1_1/${process.env.REACT_APP_CLOUDINARY_CLOUD_NAME}/image/upload`, {
+        method: 'POST',
+        body: formData
+      });
+      
+      const data = await response.json();
+      if (data.secure_url) {
+        return data.secure_url;
+      } else {
+        throw new Error('Upload failed');
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      alert('Failed to upload image');
+      return null;
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  // Handle file selection
+  const handleFileSelect = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Check if file is an image
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file');
+      return;
+    }
+
+    // Check file size (limit to 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('File size must be less than 5MB');
+      return;
+    }
+
+    const imageUrl = await handleImageUpload(file);
+    if (imageUrl) {
+      sendImageMessage(imageUrl);
+    }
+
+    // Reset file input
+    event.target.value = '';
+  };
+
+  // Send image message
+  const sendImageMessage = (imageUrl) => {
+    let timestamp = Date.now();
+    const message = {
+      content: '',
+      image: imageUrl,
+      sender_id: id,
+      sender_name: username,
+      sender_pic: profile_pic,
+      timestamp: timestamp
+    };
+    
+    if (all_messages != null) {
+      setall_messages([...all_messages, message]);
+    } else {
+      setall_messages([message]);
+    }
+    
+    socket.emit('send_image_message', channel_id, imageUrl, timestamp, username, tag, profile_pic);
+    store_image_message(imageUrl, timestamp);
+  };
+
   function send_message(e) {
-    if (e.code === 'Enter') {
+    if (e.code === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      if (!chat_message.trim()) return;
+      
       let message_to_send = parseEmojis(chat_message);
       let timestamp = Date.now();
       setchat_message('');
@@ -151,6 +232,24 @@ function Valid_chat() {
     }
   };
 
+  const store_image_message = async (imageUrl, timestamp) => {
+    const res = await fetch(`${url}/store_image_message`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-auth-token': localStorage.getItem('token'),
+      },
+      body: JSON.stringify({
+        image: imageUrl, server_id, channel_id, channel_name,
+        timestamp, username, tag, id, profile_pic
+      }),
+    });
+    const data = await res.json();
+    if (data.status == 200) {
+      console.log('image message stored');
+    }
+  };
+
   const addEmoji = (emojiKey) => {
     const emoji = EMOJI_MAP[emojiKey];
     setchat_message(prev => prev + emoji);
@@ -181,9 +280,10 @@ function Valid_chat() {
 
   useEffect(() => {
     if (latest_message != null) {
-      let { message, timestamp, sender_name, sender_tag, sender_pic } = latest_message.message_data;
+      let { message, timestamp, sender_name, sender_tag, sender_pic, image } = latest_message.message_data;
       setall_messages(prev => [...(prev || []), {
-        content: message,
+        content: message || '',
+        image: image || null,
         sender_id: sender_pic,
         sender_name: sender_name,
         sender_pic: sender_pic,
@@ -196,9 +296,13 @@ function Valid_chat() {
     setlatest_message(message_data);
   });
 
+  socket.on('recieve_image_message', message_data => {
+    setlatest_message(message_data);
+  });
+
   const handleEdit = async (timestamp) => {
     const target = all_messages.find(m => m.timestamp === timestamp);
-    if (!target) return;
+    if (!target || target.image) return; // Can't edit image messages
 
     const newContent = window.prompt('Edit your message:', target.content);
     if (!newContent || newContent === target.content) return;
@@ -293,7 +397,9 @@ function Valid_chat() {
                       <div id={valid_chat_css.message_timestamp}>{timestamp}</div>
                       {isMine && shiftPressed && (
                         <div style={{ display: 'flex', gap: '0.5rem', marginLeft: 'auto' }}>
-                          <EditIcon fontSize='small' style={{ cursor: 'pointer' }} onClick={() => handleEdit(elem.timestamp)} />
+                          {!elem.image && (
+                            <EditIcon fontSize='small' style={{ cursor: 'pointer' }} onClick={() => handleEdit(elem.timestamp)} />
+                          )}
                           <DeleteIcon fontSize='small' style={{ cursor: 'pointer' }} onClick={() => handleDelete(elem.timestamp)} />
                         </div>
                       )}
@@ -389,11 +495,29 @@ function Valid_chat() {
       <div id={valid_chat_css.bottom}>
         <div id={valid_chat_css.message_input}>
           <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            style={{ display: 'none' }}
+            onChange={handleFileSelect}
+          />
+          <AddCircleIcon 
+            htmlColor='#B9BBBE'
+            style={{ 
+              cursor: uploading ? 'not-allowed' : 'pointer', 
+              marginRight: '8px',
+              fontSize: '24px',
+              opacity: uploading ? 0.5 : 1
+            }}
+            onClick={() => !uploading && fileInputRef.current?.click()}
+          />
+          <input
             type="text"
             onKeyDown={e => send_message(e)}
             value={chat_message}
             onChange={e => setchat_message(e.target.value)}
-            placeholder={`Message #${channel_name}`}
+            placeholder={uploading ? 'Uploading image...' : `Message #${channel_name}`}
+            disabled={uploading}
           />
           <EmojiEmotionsIcon 
             htmlColor='#B9BBBE'

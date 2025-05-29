@@ -7,11 +7,13 @@ const chatSchema = new mongoose.Schema({
     channel_name: String,
     chat_details: [{
       content: String,
+      image: String,
       sender_id: String,
       sender_name: String,
       sender_pic: String,
       sender_tag: String,
       timestamp: String,
+      edited: { type: Boolean, default: false }
     }]
   }]
 });

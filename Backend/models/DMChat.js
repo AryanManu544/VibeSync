@@ -10,8 +10,9 @@ const dmChatSchema = new mongoose.Schema({
     senderName: String,
     senderPic: String,
     content: String,
+    image: String,
     timestamp: Number,
-    edited: Boolean,
+    edited: { type: Boolean, default: false }
   }]
 }, { timestamps: true });
 
