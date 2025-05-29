@@ -1,22 +1,27 @@
 .mainchat{
     background-color: #462490;
-    height: inherit;
-    position: relative;
+    height: 94vh;
     display: grid;
-    grid-template-rows: 90% 10%;
+    grid-template-rows: 1fr auto; /* This correctly allocates space */
+    overflow: hidden;
 }
 
 #top{
-    display: flex;
+    display: flex; /* This is fine for child alignment if needed, though welcome_part is also flex column */
     flex-direction: column;
-    justify-content: flex-end;    
+    /* REMOVED: justify-content: flex-end; */ /* This was causing the "frozen" scroll */
+    overflow-y: auto;         /* This makes #top the scrollable container */
+    min-height: 0; /* Ensures it can shrink properly if its content is small, good practice for fr units in grid/flex */
+    padding: 0 1rem; /* Add some horizontal padding directly to the scrollable container */
 }
 
 #welcome_part{
-    min-height: fit-content;
-    margin-left: 1rem;
-    padding-top:1rem ;
-    overflow-y: scroll;
+    display: flex;
+    flex-direction: column;
+    /* Adding some vertical padding inside welcome_part for spacing */
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+    /* flex-grow: 1; */ /* Optional: if #top has other direct children and you want welcome_part to take space */
 }
 
 #tag{
@@ -25,32 +30,35 @@
     border-radius: 50%;
     background-color: #63499c;
     color: white;
+    /* margin-left: 1rem; */ /* No longer needed if #top has padding */
 }
 
 #welcome_comp_1{
     color: white;
     font-size: 2.5rem;
     font-weight: 600;
+    /* margin-left: 1rem; */ /* No longer needed if #top has padding */
 }
 
 #welcome_comp_2{
     color: #B9BBBE;
     font-size: .9rem;
     font-weight: 600;
+    margin-bottom: 1rem; /* Space before the first message */
+    /* margin-left: 1rem; */ /* No longer needed if #top has padding */
 }
 
 #message_input{
-    position: absolute;
-    bottom: 10px;
+    /* bottom: 0px; */ /* Not needed due to grid layout */
     padding: 1rem;
-    width: 98%;
-    height: 40px;
-    margin-left: .5rem;
+    box-sizing: border-box;
+    width: calc(100% - 1rem); /* Full width minus left/right margins */
+    min-height: 40px; /* Use min-height to allow it to grow if needed for taller input */
+    margin: 0.5rem; /* Consistent margin */
     display: flex;
     align-items: center;
     background-color: #63499c;
     border-radius: 5px;
-
 }
 
 #message_input input{
@@ -60,6 +68,7 @@
     text-indent: 1rem;
     caret-color: white;
     color: white;
+    font-size: 1rem;
 }
 
 #message_input input::placeholder{
@@ -72,45 +81,50 @@
 
 #message_box{
     display: grid;
-    grid-template-columns: 5rem auto;
+    grid-template-columns: auto 1fr; /* Adjust column sizing: auto for pic, 1fr for message content */
+    gap: 0.75rem; /* Space between pic and message content block */
     min-height: 55px;
     color: white;
     margin-top: 1rem;
+    /* padding-left: 1rem; */ /* No longer needed if #top has padding */
+    /* padding-right: 1rem; */ /* No longer needed if #top has padding */
 }
 
 #message_left{
-    height: 100%;
-    width: 100%;
+    /* width: 100%; */ /* Not needed, grid handles width */
     display: flex;
-    justify-content: center;
+    /* justify-content: center; */ /* Not needed, wrapper will size image */
+    align-items: flex-start; /* Align profile pic to the top of the message box */
 }
 
 .user_image_wrap{
-    height: 100%;
-    width: 80%;
-    position: relative;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    width: 40px;
+    height: 40px;
+    display: flex; /* Not strictly necessary but fine */
+    /* justify-content: center; */
+    /* align-items: center; */
+    /* margin-top: 4px; */ /* Removed, align-items: flex-start on #message_left handles this better */
 }
 
 #user_image{
-    height:80%;
-    width: auto;
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
     border-radius: 50%;
-    position: absolute;
 }
 
 #message_right{
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    /* justify-content: center; */ /* Let content flow naturally */
+    /* padding-left: 0.5rem; */ /* Replaced by gap in #message_box */
 }
 
 #message_right_top{
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem; /* Space between user/time and message text */
 }
 
 #message_username{
@@ -118,11 +132,29 @@
 }
 
 #message_timestamp{
-    color: white;
-    font-size: .8rem;
-    font-weight: 600;
+    color: #a0a0a0;
+    font-size: .75rem;
+    font-weight: 400;
 }
 
 #message_right_bottom{
     color: white;
+    /* padding-top: 0.25rem; */ /* Replaced by margin-bottom on #message_right_top */
+    word-break: break-word;
+    line-height: 1.4; /* Improve readability */
+}
+
+/* CSS for scrollbar styling (optional, webkit browsers) */
+#top::-webkit-scrollbar {
+  width: 8px;
+}
+
+#top::-webkit-scrollbar-track {
+  background: #462490; /* Match chat background or slightly darker */
+}
+
+#top::-webkit-scrollbar-thumb {
+  background-color: #63499c; /* Accent color */
+  border-radius: 4px;
+  border: 2px solid #462490; /* Creates padding around thumb */
 }
