@@ -4,7 +4,11 @@ const auth = require('../middleware/auth');
 const userController = require('../controllers/userController');
 const User = require('../models/User');
 const multer  = require('multer');
-const upload  = multer({ storage: multer.memoryStorage() });
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+});
 
 router.get('/user_relations', auth, userController.getUserRelations);
 router.post('/get_user_by_id', auth, userController.getUserById);

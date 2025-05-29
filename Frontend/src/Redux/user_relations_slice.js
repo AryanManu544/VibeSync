@@ -1,23 +1,42 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
-// Helper function to safely normalize incoming request data
+// URL for API
+const API_URL = process.env.REACT_APP_URL;
+
+// Async thunk to fetch all user relations
+export const fetchUserRelations = createAsyncThunk(
+  'user_relations/fetchAll',
+  async (_, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_URL}/user_relations`, {
+        headers: { 'x-auth-token': token }
+      });
+      const data = await res.json();
+      console.log('[fetchUserRelations] got from server →', data);
+      if (res.ok) return data;
+      return rejectWithValue(data);
+    } catch (err) {
+      return rejectWithValue(err.message);
+    }
+  }
+);
+
+// Normalizer helper
 const normalizeRequest = (req, type) => {
   if (!req) return null;
-  
   if (type === 'incoming') {
     return {
       ...req,
       status: 'incoming',
-      // Ensure these fields exist with fallbacks
       username: req.sender_username || req.username || 'Unknown User',
       profile_pic: req.sender_profile_pic || req.profile_pic || '/default-avatar.png',
       id: req.sender_id || req.id || 'unknown-id'
     };
-  } else { // outgoing
+  } else {
     return {
       ...req,
       status: 'outgoing',
-      // Ensure these fields exist with fallbacks
       username: req.receiver_username || req.username || 'Unknown User',
       profile_pic: req.receiver_profile_pic || req.profile_pic || '/default-avatar.png',
       id: req.receiver_id || req.id || 'unknown-id'
@@ -32,19 +51,19 @@ export const userRelationsSlice = createSlice({
     outgoing_reqs: [],
     blocked: [],
     friends: [],
-    servers: []   
+    servers: [],
+    status: 'idle',
+    error: null
   },
   reducers: {
     setIncomingReqs: (state, action) => {
-      // Normalize data to ensure consistent structure
-      state.incoming_reqs = Array.isArray(action.payload) 
-        ? action.payload.map(req => normalizeRequest(req, 'incoming')).filter(Boolean)
+      state.incoming_reqs = Array.isArray(action.payload)
+        ? action.payload.map(r => normalizeRequest(r, 'incoming')).filter(Boolean)
         : [];
     },
     setOutgoingReqs: (state, action) => {
-      // Normalize data to ensure consistent structure
-      state.outgoing_reqs = Array.isArray(action.payload) 
-        ? action.payload.map(req => normalizeRequest(req, 'outgoing')).filter(Boolean)
+      state.outgoing_reqs = Array.isArray(action.payload)
+        ? action.payload.map(r => normalizeRequest(r, 'outgoing')).filter(Boolean)
         : [];
     },
     setBlocked: (state, action) => {
@@ -53,15 +72,39 @@ export const userRelationsSlice = createSlice({
     setFriends: (state, action) => {
       state.friends = Array.isArray(action.payload) ? action.payload : [];
     },
+    setServers: (state, action) => {
+      state.servers = Array.isArray(action.payload) ? action.payload : [];
+    },
     clearRelations: (state) => {
       state.incoming_reqs = [];
       state.outgoing_reqs = [];
       state.blocked = [];
       state.friends = [];
-    },
-    setServers:(s,a) => { 
-      s.servers = a.payload 
-    },
+      state.servers = [];
+      state.status = 'idle';
+      state.error = null;
+    }
+  },
+  extraReducers: builder => {
+    builder
+      .addCase(fetchUserRelations.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+      })
+      .addCase(fetchUserRelations.fulfilled, (state, { payload }) => {
+        state.incoming_reqs = (payload.incoming_reqs || [])
+          .map(r => normalizeRequest(r, 'incoming'));
+        state.outgoing_reqs = (payload.outgoing_reqs || [])
+          .map(r => normalizeRequest(r, 'outgoing'));
+        state.blocked = payload.blocked || [];
+        state.friends = payload.friends || [];
+        state.servers = payload.servers || [];
+        state.status = 'succeeded';
+      })
+      .addCase(fetchUserRelations.rejected, (state, { payload }) => {
+        state.status = 'failed';
+        state.error = payload;
+      });
   }
 });
 
@@ -70,8 +113,7 @@ export const {
   setOutgoingReqs,
   setBlocked,
   setFriends,
-  clearRelations,
-  setServers
+  setServers,
+  clearRelations
 } = userRelationsSlice.actions;
-
 export default userRelationsSlice.reducer;

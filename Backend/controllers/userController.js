@@ -2,7 +2,7 @@
 const bcrypt = require('bcrypt');
 const jwt    = require('jsonwebtoken');
 const User   = require('../models/User');
-const Chat   = require('../models/Chat');      // <— Import your Chat model
+const Chat   = require('../models/Chat');     
 const { isUsernameAvailable } = require('../utils/helpers');
 
 // Fetch incoming/outgoing friend requests, friends list, and servers

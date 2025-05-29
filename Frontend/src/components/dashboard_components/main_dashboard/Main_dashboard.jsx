@@ -9,7 +9,7 @@ import PersonRemoveIcon from '@mui/icons-material/PersonRemove';
 import ChatBubbleIcon from '@mui/icons-material/ChatBubble';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { isEqual } from 'lodash';
-
+import { fetchUserRelations } from '../../../Redux/user_relations_slice';
 import main_dashboardcss from './main_dashboard.module.css';
 import { clearActiveDM, setActiveDM } from '../../../Redux/active_dm_slice';
 import { update_options } from '../../../Redux/options_slice';
@@ -38,7 +38,6 @@ function Main_dashboard() {
   const { username, profile_pic, id } = useSelector(state => state.user_info);
   const user_relations = useSelector(state => state.user_relations);
 
-  const isMounted = useRef(true);
   const [button_state, setbutton_state] = useState(true);
   const [option_data, setoption_data] = useState([]);
   const [input, setinput] = useState('');
@@ -46,7 +45,6 @@ function Main_dashboard() {
   const [image, setimage] = useState(IMAGES_MAP[1]);
   const [loading, setLoading] = useState(false);
 
-  // Destructure relations for clarity
   const { incoming_reqs, outgoing_reqs, blocked } = useMemo(() => ({
     incoming_reqs: Array.isArray(user_relations?.incoming_reqs) ? user_relations.incoming_reqs : [],
     outgoing_reqs: Array.isArray(user_relations?.outgoing_reqs) ? user_relations.outgoing_reqs : [],
@@ -55,14 +53,8 @@ function Main_dashboard() {
 
   const url = process.env.REACT_APP_URL;
 
-  // Track mount status
   useEffect(() => {
-    return () => { isMounted.current = false; };
-  }, []);
-
-  // Load data whenever option, server URL, or relation slices change
-  useEffect(() => {
-    if (!isMounted.current) return;
+    let isMounted = true;
     setLoading(true);
 
     async function loadData() {
@@ -77,31 +69,22 @@ function Main_dashboard() {
               } 
             });
             const data = await res.json();
-            console.log('Friends API response:', data);
             newData = option_check === 1
               ? (data.friends || []).filter(f => f.isOnline)
               : (data.friends || []);
             break;
           }
           case 3:
-            console.log('Raw incoming_reqs:', incoming_reqs);
-            console.log('Raw outgoing_reqs:', outgoing_reqs);
-            
-            // FIXED: Removed duplicated mapping code
             newData = [
               ...incoming_reqs.map(req => ({
                 ...req,
                 status: 'incoming',
-                // These fields should already be normalized in the Redux slice
               })),
               ...outgoing_reqs.map(req => ({
                 ...req,
                 status: 'outgoing',
-                // These fields should already be normalized in the Redux slice
               }))
             ];
-            
-            console.log('Normalized request data:', newData);
             break;
           case 4:
             newData = [...blocked];
@@ -112,31 +95,26 @@ function Main_dashboard() {
           default:
             newData = [];
         }
-        
-        if (!isEqual(newData, option_data)) {
+        if (isMounted && !isEqual(newData, option_data)) {
           setoption_data(newData);
         }
       } catch (err) {
-        console.error('Error loading data:', err);
         setalert({ style: 'flex', message: 'Error loading data. Please try again.' });
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     }
 
     loadData();
-  }, [option_check, url, incoming_reqs, outgoing_reqs, blocked, option_data]);
-
+    return () => { isMounted = false; };
+    // eslint-disable-next-line
+  }, [option_check, url, incoming_reqs, outgoing_reqs, blocked]);
+  useEffect(() => {
+    dispatch(fetchUserRelations());
+  }, [dispatch]);
   useEffect(() => { dispatch(clearActiveDM()); }, [option_check, dispatch]);
   useEffect(() => { setimage(IMAGES_MAP[option_check] || online_duckie); }, [option_check]);
   useEffect(() => { setbutton_state(input.length < 1); }, [input]);
-
-  // Debugging log effect
-  useEffect(() => {
-    console.log('Current option_data:', option_data);
-    console.log('Current user_relations state:', user_relations);
-    console.log('Active option check:', option_check);
-  }, [option_data, user_relations, option_check]);
 
   const button_clicked = useCallback(async (message, friend_data) => {
     try {
@@ -154,12 +132,12 @@ function Main_dashboard() {
 
       if (data.status === 200 || data.status === 404) {
         dispatch(update_options());
+        await dispatch(fetchUserRelations());
         if (data.status === 200) {
           socket.emit('req_accepted', id, friend_data.id, username, profile_pic);
         }
       }
     } catch (error) {
-      console.error('Error processing request:', error);
       setalert({ style: 'flex', message: 'Error processing request' });
     } finally {
       setLoading(false);
@@ -199,12 +177,12 @@ function Main_dashboard() {
 
       if ([201, 203].includes(data.status)) {
         dispatch(update_options());
+        await dispatch(fetchUserRelations())
         if (data.status === 203) {
           socket.emit('send_req', data.receiver_id, id, profile_pic, username);
         }
       }
     } catch (error) {
-      console.error('Error adding friend:', error);
       setalert({ style: 'flex', message: 'An error occurred while adding friend' });
     } finally {
       setLoading(false);
@@ -233,12 +211,11 @@ function Main_dashboard() {
         dispatch(setActiveDM(friend));
       }
     } catch (err) {
-      console.error('Error creating/opening DM:', err);
       setalert({ style: 'flex', message: 'Error opening DM chat' });
     } finally {
       setLoading(false);
     }
-  }, [url, dispatch]);
+  }, [url, dispatch, id, username, profile_pic]);
 
   const renderAddFriend = useMemo(() => (
     <div className={main_dashboardcss.add_friend_wrap}>
@@ -276,7 +253,6 @@ function Main_dashboard() {
   ), [image, option_text]);
 
   const renderFriendItem = useCallback((elem) => {
-    console.log('Rendering friend item:', elem);
     return (
       <div key={`${elem.id}-${elem.username}`} className={main_dashboardcss.friends_section_wrap}>
         <div id={main_dashboardcss.online_users_wrap}>
@@ -335,13 +311,6 @@ function Main_dashboard() {
 
   if (option_check === 5) return renderAddFriend;
   if (activeDM) return <DMChat user_info={{ username, profile_pic, id }} activeDM={activeDM} />;
-  
-  // DEBUG: Output status counts when in pending view
-  if (option_check === 3) {
-    console.log('Showing pending view with:', option_data.length, 'items');
-    console.log('Incoming count:', incoming_reqs.length);
-    console.log('Outgoing count:', outgoing_reqs.length);
-  }
 
   return (
     <>
