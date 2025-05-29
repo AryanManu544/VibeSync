@@ -14,6 +14,7 @@ import {
   setFriends
 } from "../../Redux/user_relations_slice";
 import "../../styles/Login.css";
+import jwtDecode from 'jwt-decode';
 
 const Login = ({ showAlert }) => {
   const [credentials, setCredentials] = useState({
@@ -76,19 +77,22 @@ const Login = ({ showAlert }) => {
       }
 
       localStorage.setItem("token", token);
+      const { id: userId } = jwtDecode(token);
+
       const profileRes = await fetch(
-       `${API_BASE_URL}/get_user_by_id`,
-       {
-         method: "POST",
-         headers: {
-           "Content-Type": "application/json",
-           "x-auth-token": token
-         },
-         body: JSON.stringify({ id: body.userId || body.id }) 
-       }
-     );
-     const profileJson = await profileRes.json();
-     const user = profileJson.user; 
+        `${API_BASE_URL}/get_user_by_id`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-auth-token": token
+          },
+          body: JSON.stringify({ id: userId })
+        }
+      );
+      const profileJson = await profileRes.json();
+      const user = profileJson.user;
+      localStorage.setItem('userProfile', JSON.stringify(user));
       if (credentials.remember) {
         localStorage.setItem("loginCreds", JSON.stringify(credentials));
       } else {
