@@ -72,7 +72,7 @@ const Register = ({ mode, showAlert }) => {
       const res = await fetch(`${API_BASE_URL}/register`, {
         method: "POST",
         body: formData,
-      }); r
+      });
       const json = await res.json();
 
       if (res.status === 409) {

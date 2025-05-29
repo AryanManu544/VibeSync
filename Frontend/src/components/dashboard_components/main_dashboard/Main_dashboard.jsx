@@ -69,9 +69,11 @@ function Main_dashboard() {
               } 
             });
             const data = await res.json();
+            console.log('Fetched friends data:', data); // Debug log
             newData = option_check === 1
               ? (data.friends || []).filter(f => f.isOnline)
               : (data.friends || []);
+            console.log('Processed newData:', newData); // Debug log
             break;
           }
           case 3:
@@ -95,10 +97,12 @@ function Main_dashboard() {
           default:
             newData = [];
         }
-        if (isMounted && !isEqual(newData, option_data)) {
+        if (isMounted) {
+          console.log('Setting option_data to:', newData); // Debug log
           setoption_data(newData);
         }
       } catch (err) {
+        console.error('Error loading data:', err);
         setalert({ style: 'flex', message: 'Error loading data. Please try again.' });
       } finally {
         if (isMounted) setLoading(false);
@@ -109,47 +113,54 @@ function Main_dashboard() {
     return () => { isMounted = false; };
     // eslint-disable-next-line
   }, [option_check, url, incoming_reqs, outgoing_reqs, blocked]);
+
   useEffect(() => {
     dispatch(fetchUserRelations());
   }, [dispatch]);
-  useEffect(() => { dispatch(clearActiveDM()); }, [option_check, dispatch]);
-  useEffect(() => { setimage(IMAGES_MAP[option_check] || online_duckie); }, [option_check]);
-  useEffect(() => { setbutton_state(input.length < 1); }, [input]);
+
+  useEffect(() => { 
+    dispatch(clearActiveDM()); 
+  }, [option_check, dispatch]);
+
+  useEffect(() => { 
+    setimage(IMAGES_MAP[option_check] || online_duckie); 
+  }, [option_check]);
+
+  useEffect(() => { 
+    setbutton_state(input.length < 1); 
+  }, [input]);
 
   const button_clicked = useCallback(async (message, friend_data) => {
-  try {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const formData = new FormData();
-    formData.append('message', message);
+      const formData = new FormData();
+      formData.append('message', message);
+      formData.append('friend_data', JSON.stringify(friend_data));
 
-    // Assuming friend_data is an object, append each key-value pair
-    // FormData doesn't support nested objects directly, so convert friend_data to JSON string
-    formData.append('friend_data', JSON.stringify(friend_data));
+      const res = await fetch(`${url}/process_req`, {
+        method: 'POST',
+        headers: {
+          'x-auth-token': localStorage.getItem('token'),
+        },
+        body: formData,
+      });
 
-    const res = await fetch(`${url}/process_req`, {
-      method: 'POST',
-      headers: {
-        'x-auth-token': localStorage.getItem('token'),  // no Content-Type for FormData
-      },
-      body: formData,
-    });
+      const data = await res.json();
 
-    const data = await res.json();
-
-    if (data.status === 200 || data.status === 404) {
-      dispatch(update_options());
-      await dispatch(fetchUserRelations());
-      if (data.status === 200) {
-        socket.emit('req_accepted', id, friend_data.id, username, profile_pic);
+      if (data.status === 200 || data.status === 404) {
+        dispatch(update_options());
+        await dispatch(fetchUserRelations());
+        if (data.status === 200) {
+          socket.emit('req_accepted', id, friend_data.id, username, profile_pic);
+        }
       }
+    } catch (error) {
+      setalert({ style: 'flex', message: 'Error processing request' });
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    setalert({ style: 'flex', message: 'Error processing request' });
-  } finally {
-    setLoading(false);
-  }
-}, [url, dispatch, id, username, profile_pic]);
+  }, [url, dispatch, id, username, profile_pic]);
 
   const buttons = useMemo(() =>
     (message, Icon, friend_data) => (
@@ -164,40 +175,41 @@ function Main_dashboard() {
     [button_clicked]);
 
   const add_friend = useCallback(async (e) => {
-  e.preventDefault();
-  try {
-    setLoading(true);
+    e.preventDefault();
+    try {
+      setLoading(true);
 
-    const formData = new FormData();
-    formData.append('friend', input);
+      const formData = new FormData();
+      formData.append('friend', input);
 
-    const res = await fetch(`${url}/add_friend`, {
-      method: 'POST',
-      headers: {
-        'x-auth-token': localStorage.getItem('token'),  // no Content-Type here either
-      },
-      body: formData,
-    });
+      const res = await fetch(`${url}/add_friend`, {
+        method: 'POST',
+        headers: {
+          'x-auth-token': localStorage.getItem('token'),
+        },
+        body: formData,
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if ([404, 201, 202, 203].includes(data.status)) {
-      setalert({ style: 'flex', message: data.message });
-    }
-
-    if ([201, 203].includes(data.status)) {
-      dispatch(update_options());
-      await dispatch(fetchUserRelations());
-      if (data.status === 203) {
-        socket.emit('send_req', data.receiver_id, id, profile_pic, username);
+      if ([404, 201, 202, 203].includes(data.status)) {
+        setalert({ style: 'flex', message: data.message });
       }
+
+      if ([201, 203].includes(data.status)) {
+        dispatch(update_options());
+        await dispatch(fetchUserRelations());
+        if (data.status === 203) {
+          socket.emit('send_req', data.receiver_id, id, profile_pic, username);
+        }
+      }
+    } catch (error) {
+      setalert({ style: 'flex', message: 'An error occurred while adding friend' });
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    setalert({ style: 'flex', message: 'An error occurred while adding friend' });
-  } finally {
-    setLoading(false);
-  }
-}, [url, input, dispatch, id, profile_pic, username]);
+  }, [url, input, dispatch, id, profile_pic, username]);
+
   const handle_input = useCallback((e) => {
     setinput(e.target.value);
     setalert(prev => ({ ...prev, style: 'none' }));
@@ -224,7 +236,7 @@ function Main_dashboard() {
     } finally {
       setLoading(false);
     }
-  }, [url, dispatch, id, username, profile_pic]);
+  }, [url, dispatch]);
 
   const renderAddFriend = useMemo(() => (
     <div className={main_dashboardcss.add_friend_wrap}>
@@ -261,9 +273,12 @@ function Main_dashboard() {
     </div>
   ), [image, option_text]);
 
-  const renderFriendItem = useCallback((elem) => {
+  const renderFriendItem = useCallback((elem, index) => {
+    // Create a unique key that won't cause conflicts
+    const uniqueKey = `friend-${elem.id || index}-${elem.username || 'unknown'}-${index}`;
+    
     return (
-      <div key={`${elem.id}-${elem.username}`} className={main_dashboardcss.friends_section_wrap}>
+      <div key={uniqueKey} className={main_dashboardcss.friends_section_wrap}>
         <div id={main_dashboardcss.online_users_wrap}>
           <div className={main_dashboardcss.online_users}>
             <div className={main_dashboardcss.online_comps} id={main_dashboardcss.item_1_wrap}>
@@ -321,9 +336,21 @@ function Main_dashboard() {
   if (option_check === 5) return renderAddFriend;
   if (activeDM) return <DMChat user_info={{ username, profile_pic, id }} activeDM={activeDM} />;
 
+  console.log('About to render, option_data length:', option_data.length); // Debug log
+  console.log('Option data:', option_data); // Debug log
+
   return (
     <>
-      {option_data.length === 0 ? renderDefaultView : option_data.map(renderFriendItem)}
+      {option_data.length === 0 ? (
+        renderDefaultView
+      ) : (
+        <div className={main_dashboardcss.friends_container}>
+          {option_data.map((elem, index) => {
+            console.log(`Rendering friend ${index}:`, elem); // Debug each render
+            return renderFriendItem(elem, index);
+          })}
+        </div>
+      )}
     </>
   );
 }
