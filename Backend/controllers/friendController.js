@@ -1,5 +1,7 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const multer = require('multer');
+const upload = multer();
 
 function checkExists(arr, id) {
   return arr.some(e => e.id === id);
@@ -70,43 +72,46 @@ exports.addFriend = async (req, res) => {
   }
 };
 
-exports.processRequest = async (req, res) => {
-  const { message, friend_data } = req.body;
-  const userId = req.userId;
-  const friendId = friend_data.id;
+exports.processRequest = [
+  upload.none(), 
+  async (req, res) => {
+    try {
+      const { message } = req.body;
+      const friend_data = JSON.parse(req.body.friend_data);
+      const userId = req.userId;
+      const friendId = friend_data.id;
 
-  try {
-    if (message === 'Accept') {
-      await User.updateOne(
-        { _id: userId },
-        {
-          $push: { friends: friend_data },
-          $pull: { incoming_reqs: { id: friendId } }
-        }
-      );
+      if (message === 'Accept') {
+        await User.updateOne(
+          { _id: userId },
+          {
+            $push: { friends: friend_data },
+            $pull: { incoming_reqs: { id: friendId } }
+          }
+        );
 
-      await User.updateOne(
-        { _id: friendId },
-        {
-          $push: {
-            friends: {
-              id: userId,
-              username: friend_data.username,
-              profile_pic: friend_data.profile_pic,
-              tag: friend_data.tag
-            }
-          },
-          $pull: { outgoing_reqs: { id: userId } }
-        }
-      );
+        await User.updateOne(
+          { _id: friendId },
+          {
+            $push: {
+              friends: {
+                id: userId,
+                username: friend_data.username,
+                profile_pic: friend_data.profile_pic,
+                tag: friend_data.tag
+              }
+            },
+            $pull: { outgoing_reqs: { id: userId } }
+          }
+        );
 
-      res.status(200).json({ message: 'Friend added', status: 200 });
-
-    } else {
-      res.status(200).json({ message: `Request ${message}`, status: 200 });
+        return res.status(200).json({ message: 'Friend added', status: 200 });
+      } else {
+        return res.status(200).json({ message: `Request ${message}`, status: 200 });
+      }
+    } catch (err) {
+      console.error('❌ processRequest error:', err);
+      res.status(500).json({ message: 'Server error' });
     }
-  } catch (err) {
-    console.error('❌ processRequest error:', err);
-    res.status(500).json({ message: 'Server error' });
   }
-};
+];

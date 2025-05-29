@@ -117,32 +117,39 @@ function Main_dashboard() {
   useEffect(() => { setbutton_state(input.length < 1); }, [input]);
 
   const button_clicked = useCallback(async (message, friend_data) => {
-    try {
-      setLoading(true);
-      const res = await fetch(`${url}/process_req`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-auth-token': localStorage.getItem('token'),
-        },
-        body: JSON.stringify({ friend_data, message }),
-      });
+  try {
+    setLoading(true);
 
-      const data = await res.json();
+    const formData = new FormData();
+    formData.append('message', message);
 
-      if (data.status === 200 || data.status === 404) {
-        dispatch(update_options());
-        await dispatch(fetchUserRelations());
-        if (data.status === 200) {
-          socket.emit('req_accepted', id, friend_data.id, username, profile_pic);
-        }
+    // Assuming friend_data is an object, append each key-value pair
+    // FormData doesn't support nested objects directly, so convert friend_data to JSON string
+    formData.append('friend_data', JSON.stringify(friend_data));
+
+    const res = await fetch(`${url}/process_req`, {
+      method: 'POST',
+      headers: {
+        'x-auth-token': localStorage.getItem('token'),  // no Content-Type for FormData
+      },
+      body: formData,
+    });
+
+    const data = await res.json();
+
+    if (data.status === 200 || data.status === 404) {
+      dispatch(update_options());
+      await dispatch(fetchUserRelations());
+      if (data.status === 200) {
+        socket.emit('req_accepted', id, friend_data.id, username, profile_pic);
       }
-    } catch (error) {
-      setalert({ style: 'flex', message: 'Error processing request' });
-    } finally {
-      setLoading(false);
     }
-  }, [url, dispatch, id, username, profile_pic]);
+  } catch (error) {
+    setalert({ style: 'flex', message: 'Error processing request' });
+  } finally {
+    setLoading(false);
+  }
+}, [url, dispatch, id, username, profile_pic]);
 
   const buttons = useMemo(() =>
     (message, Icon, friend_data) => (
@@ -157,38 +164,40 @@ function Main_dashboard() {
     [button_clicked]);
 
   const add_friend = useCallback(async (e) => {
-    e.preventDefault();
-    try {
-      setLoading(true);
-      const res = await fetch(`${url}/add_friend`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-auth-token': localStorage.getItem('token'),
-        },
-        body: JSON.stringify({ friend: input }),
-      });
+  e.preventDefault();
+  try {
+    setLoading(true);
 
-      const data = await res.json();
+    const formData = new FormData();
+    formData.append('friend', input);
 
-      if ([404, 201, 202, 203].includes(data.status)) {
-        setalert({ style: 'flex', message: data.message });
-      }
+    const res = await fetch(`${url}/add_friend`, {
+      method: 'POST',
+      headers: {
+        'x-auth-token': localStorage.getItem('token'),  // no Content-Type here either
+      },
+      body: formData,
+    });
 
-      if ([201, 203].includes(data.status)) {
-        dispatch(update_options());
-        await dispatch(fetchUserRelations())
-        if (data.status === 203) {
-          socket.emit('send_req', data.receiver_id, id, profile_pic, username);
-        }
-      }
-    } catch (error) {
-      setalert({ style: 'flex', message: 'An error occurred while adding friend' });
-    } finally {
-      setLoading(false);
+    const data = await res.json();
+
+    if ([404, 201, 202, 203].includes(data.status)) {
+      setalert({ style: 'flex', message: data.message });
     }
-  }, [url, input, dispatch, id, profile_pic, username]);
 
+    if ([201, 203].includes(data.status)) {
+      dispatch(update_options());
+      await dispatch(fetchUserRelations());
+      if (data.status === 203) {
+        socket.emit('send_req', data.receiver_id, id, profile_pic, username);
+      }
+    }
+  } catch (error) {
+    setalert({ style: 'flex', message: 'An error occurred while adding friend' });
+  } finally {
+    setLoading(false);
+  }
+}, [url, input, dispatch, id, profile_pic, username]);
   const handle_input = useCallback((e) => {
     setinput(e.target.value);
     setalert(prev => ({ ...prev, style: 'none' }));

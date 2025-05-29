@@ -61,18 +61,18 @@ const Register = ({ mode, showAlert }) => {
 
     setIsSubmitting(true);
     const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:4000";
-const formData = new FormData();
+    const formData = new FormData();
     formData.append("username", name);
     formData.append("email", email);
     formData.append("password", password);
     if (profileFile) {
-      formData.append("profile_pic_file", profileFile);
+      formData.append("profile_pic", profileFile);
     }
     try {
       const res = await fetch(`${API_BASE_URL}/register`, {
         method: "POST",
         body: formData,
-      });
+      }); r
       const json = await res.json();
 
       if (res.status === 409) {
