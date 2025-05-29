@@ -37,8 +37,8 @@ app.options('*', cors(corsOptions));
 app.use(cors(corsOptions));
 
 // 6. Body parsers
-app.use(express.json({ limit: '5mb' }));
-app.use(express.urlencoded({ extended: true, limit: '5mb' }));
+app.use(express.json({ limit: '10kb' }));
+app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
 // 7. Connect to database
 connectDB();
