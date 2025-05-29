@@ -66,7 +66,7 @@ const formData = new FormData();
     formData.append("email", email);
     formData.append("password", password);
     if (profileFile) {
-      formData.append("profile_pic", profileFile);
+      formData.append("profile_pic_file", profileFile);
     }
     try {
       const res = await fetch(`${API_BASE_URL}/register`, {

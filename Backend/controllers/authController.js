@@ -8,28 +8,33 @@ const JWT_SECRET = process.env.ACCESS_TOKEN;
 
 exports.register = async (req, res) => {
   const { email, username, password } = req.body;
-  const profile_pic_file = req.file;
+  const file = req.file;   
 
   if (!email || !username || !password) {
-    return res.status(400).json({ success: false, message: 'Missing required fields' });
+    return res
+      .status(400)
+      .json({ success: false, message: 'Missing required fields' });
   }
 
   if (password.length < 7) {
-    return res.status(400).json({ success: false, message: 'Password must be at least 7 characters' });
+    return res
+      .status(400)
+      .json({ success: false, message: 'Password must be at least 7 characters' });
   }
 
   try {
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(409).json({ success: false, message: 'Email already in use' });
+      return res
+        .status(409)
+        .json({ success: false, message: 'Email already in use' });
     }
 
-    const tag = await isUsernameAvailable(username);
+    const tag       = await isUsernameAvailable(username);
     const hashedPwd = await bcrypt.hash(password, 12);
 
-    // Store as base64 string if needed (optional: store as binary or cloud)
-    const profile_pic = profile_pic_file
-      ? `data:${profile_pic_file.mimetype};base64,${profile_pic_file.buffer.toString('base64')}`
+    const profile_pic = file
+      ? file.path
       : DEFAULT_PIC;
 
     const newUser = new User({
@@ -37,25 +42,30 @@ exports.register = async (req, res) => {
       tag,
       email,
       password: hashedPwd,
-      profile_pic,
+      profile_pic
     });
-
     await newUser.save();
 
     const authtoken = jwt.sign(
-      { id: newUser._id, username, tag},
+      { sub: newUser._id },
       JWT_SECRET,
       { expiresIn: '1h' }
     );
 
-    return res.status(201).json({ success: true, authtoken });
+    return res
+      .status(201)
+      .json({ success: true, token: authtoken });
 
   } catch (err) {
     console.error('❌ Register error:', err);
     if (err.code === 11000 && err.keyPattern?.email) {
-      return res.status(409).json({ success: false, message: 'Email already in use' });
+      return res
+        .status(409)
+        .json({ success: false, message: 'Email already in use' });
     }
-    return res.status(500).json({ success: false, message: 'Server error' });
+    return res
+      .status(500)
+      .json({ success: false, message: 'Server error' });
   }
 };
 

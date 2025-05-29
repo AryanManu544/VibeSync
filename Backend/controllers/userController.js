@@ -51,22 +51,21 @@ exports.getUserById = async (req, res) => {
 // Update Profile Picture
 exports.update_picture = async (req, res) => {
   try {
-    if (!req.file || !req.file.buffer) {
+    if (!req.file || !req.file.path) {
       return res.status(400).json({ message: 'No file uploaded' });
     }
 
-    // Convert to Base64 data-URL
-    const mime   = req.file.mimetype;
-    const b64    = req.file.buffer.toString('base64');
-    const dataUrl= `data:${mime};base64,${b64}`;
+    // req.file.path is automatically set by multer-storage-cloudinary
+    const imageUrl = req.file.path;
 
-    await User.findByIdAndUpdate(
+    const updatedUser = await User.findByIdAndUpdate(
       req.userId,
-      { profile_pic: dataUrl },
+      { profile_pic: imageUrl },
       { new: true }
     );
 
-    return res.status(200).json({ message: 'Profile picture updated', profile_pic: dataUrl });
+    return res.status(200).json({ message: 'Profile picture updated', profile_pic: updatedUser.profile_pic });
+
   } catch (err) {
     console.error('❌ update_picture error:', err);
     return res.status(500).json({ message: 'Server error' });
