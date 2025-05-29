@@ -43,7 +43,7 @@ exports.register = async (req, res) => {
     await newUser.save();
 
     const authtoken = jwt.sign(
-      { id: newUser._id, username, tag, profile_pic },
+      { id: newUser._id, username, tag},
       JWT_SECRET,
       { expiresIn: '1h' }
     );
@@ -79,7 +79,6 @@ exports.login = async (req, res) => {
         id: userData._id,
         username: userData.username,
         tag: userData.tag,
-        profile_pic: userData.profile_pic
       },
       process.env.ACCESS_TOKEN,
       { expiresIn: '1h' }

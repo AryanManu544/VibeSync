@@ -76,13 +76,25 @@ const Login = ({ showAlert }) => {
       }
 
       localStorage.setItem("token", token);
+      const profileRes = await fetch(
+       `${API_BASE_URL}/get_user_by_id`,
+       {
+         method: "POST",
+         headers: {
+           "Content-Type": "application/json",
+           "x-auth-token": token
+         },
+         body: JSON.stringify({ id: body.userId || body.id }) 
+       }
+     );
+     const profileJson = await profileRes.json();
+     const user = profileJson.user; 
       if (credentials.remember) {
         localStorage.setItem("loginCreds", JSON.stringify(credentials));
       } else {
         localStorage.removeItem("loginCreds");
       }
 
-      const user = body.user || {};
       dispatch(change_username(user.username));
       dispatch(change_tag(user.tag));
       dispatch(option_profile_pic(user.profile_pic));
