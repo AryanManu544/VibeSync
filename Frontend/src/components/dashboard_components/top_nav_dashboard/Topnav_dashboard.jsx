@@ -1,13 +1,11 @@
 import React from 'react';
 import topnav_dashboardcss from '../top_nav_dashboard/topnav_dashboard.module.css';
 import friends_icon from '../../../images/friends.svg';
-import InboxIcon from '@mui/icons-material/Inbox';
-import ChatBubbleIcon from '@mui/icons-material/ChatBubble';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
 import { useDispatch } from 'react-redux';
 import { change_option, change_option_name, option_status, option_text } from '../../../Redux/options_slice';
-import { clearSelectedUser } from '../../../Redux/dms_slice'; // Adjust path if needed
+import { clearSelectedUser } from '../../../Redux/dms_slice'; 
 import LogoutIcon from '@mui/icons-material/Logout';
 import { useNavigate } from 'react-router-dom';
 
@@ -21,7 +19,7 @@ function Topnav_dashboard({ button_status = {} }) {
     dispatch(change_option_name(option_name));
     dispatch(option_status(status));
     dispatch(option_text(text));
-    dispatch(clearSelectedUser()); // Clear selected DM when switching top nav option
+    dispatch(clearSelectedUser());
   }
 
   function buttons(message, Icon) {
@@ -104,8 +102,6 @@ function Topnav_dashboard({ button_status = {} }) {
         </div>
       </div>
       <div className={topnav_dashboardcss.top_nav_comps} id={topnav_dashboardcss.right_part}>
-        {buttons('New Group DM', ChatBubbleIcon)}
-        {buttons('Inbox', InboxIcon)}
         {buttons('Logout', LogoutIcon)}
       </div>
     </>
