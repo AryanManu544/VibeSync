@@ -71,6 +71,7 @@ const Register = ({ mode, showAlert }) => {
     try {
       const res = await fetch(`${API_BASE_URL}/register`, {
         method: "POST",
+        credentials: 'include',
         body: formData,
       });
       const json = await res.json();
@@ -78,7 +79,7 @@ const Register = ({ mode, showAlert }) => {
       if (res.status === 409) {
         // Duplicate email error from server
         showAlert(json.message || "Email already in use", "danger");
-      } else if (json.authtoken) {
+      } else if (json.accesstoken) {
         // Successful registration
         showAlert("Account created successfully", "success");
         navigate("/login");

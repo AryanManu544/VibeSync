@@ -53,6 +53,7 @@ const Login = ({ showAlert }) => {
     try {
       const response = await fetch(`${API_BASE_URL}/login`, {
         method: "POST",
+        credentials: 'include',
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: credentials.email,
@@ -69,7 +70,7 @@ const Login = ({ showAlert }) => {
         return;
       }
 
-      const token = body.token || body.authtoken;
+      const token = body.accesstoken;
       if (!token) {
         showAlert("No token received", "danger");
         setIsLoading(false);

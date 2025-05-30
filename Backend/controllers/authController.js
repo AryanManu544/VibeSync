@@ -1,103 +1,145 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const { isUsernameAvailable } = require('../utils/helpers');
 
-const DEFAULT_PIC = process.env.DEFAULT_PROFILE_PIC;
-const JWT_SECRET = process.env.ACCESS_TOKEN;
+const {
+  ACCESS_TOKEN_SECRET,
+  REFRESH_TOKEN_SECRET,
+  ACCESS_TOKEN_LIFETIME = '15m',
+  REFRESH_TOKEN_LIFETIME = '7d',
+  NODE_ENV
+} = process.env;
+
+const signAccessToken = (user) => {
+  return jwt.sign(
+    { id: user._id, username: user.username, tag: user.tag }, 
+    ACCESS_TOKEN_SECRET,
+    { expiresIn: ACCESS_TOKEN_LIFETIME }
+  );
+};
+
+const signRefreshToken = (user) => {
+  return jwt.sign(
+    { id: user._id }, 
+    REFRESH_TOKEN_SECRET,
+    { expiresIn: REFRESH_TOKEN_LIFETIME }
+  );
+};
 
 exports.register = async (req, res) => {
   const { email, username, password } = req.body;
-  const file = req.file;   
+  const file = req.file;
 
   if (!email || !username || !password) {
-    return res
-      .status(400)
-      .json({ success: false, message: 'Missing required fields' });
+    return res.status(400).json({ success: false, message: 'Missing required fields' });
   }
-
   if (password.length < 7) {
-    return res
-      .status(400)
-      .json({ success: false, message: 'Password must be at least 7 characters' });
+    return res.status(400).json({ success: false, message: 'Password must be at least 7 characters' });
   }
 
   try {
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res
-        .status(409)
-        .json({ success: false, message: 'Email already in use' });
+    if (await User.findOne({ email })) {
+      return res.status(409).json({ success: false, message: 'Email already in use' });
     }
 
-    const tag       = await isUsernameAvailable(username);
+    const tag = await require('../utils/helpers').isUsernameAvailable(username);
     const hashedPwd = await bcrypt.hash(password, 12);
 
-    const profile_pic = file
-      ? file.path
-      : DEFAULT_PIC;
+    const profile_pic = file ? file.path : process.env.DEFAULT_PROFILE_PIC;
 
-    const newUser = new User({
-      username,
-      tag,
-      email,
-      password: hashedPwd,
-      profile_pic
-    });
+    const newUser = new User({ username, tag, email, password: hashedPwd, profile_pic });
     await newUser.save();
 
-    const authtoken = jwt.sign(
-      { sub: newUser._id },
-      JWT_SECRET,
-      { expiresIn: '1h' }
-    );
+    const accessToken = signAccessToken(newUser);
+    const refreshToken = signRefreshToken(newUser);
 
-    return res
+    // Send refresh token in httpOnly cookie
+    res
+      .cookie('jid', refreshToken, {
+        httpOnly: true,
+        secure: NODE_ENV === 'production',
+        sameSite: 'strict',
+        path: '/auth/refresh_token'
+      })
       .status(201)
-      .json({ success: true, token: authtoken });
+      .json({ success: true, accessToken });
 
   } catch (err) {
     console.error('❌ Register error:', err);
     if (err.code === 11000 && err.keyPattern?.email) {
-      return res
-        .status(409)
-        .json({ success: false, message: 'Email already in use' });
+      return res.status(409).json({ success: false, message: 'Email already in use' });
     }
-    return res
-      .status(500)
-      .json({ success: false, message: 'Server error' });
+    return res.status(500).json({ success: false, message: 'Server error' });
   }
 };
 
 exports.login = async (req, res) => {
   const { email, password } = req.body;
 
-  if (!email || !password)
-    return res.status(400).json({ error: 'Email and password required' });
+  if (!email || !password) {
+    return res.status(400).json({ success: false, message: 'Email and password required' });
+  }
 
   try {
-    const userData = await User.findOne({ email });
-    if (!userData)
-      return res.status(401).json({ error: 'Invalid username or password' });
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(401).json({ success: false, message: 'Invalid email or password' });
+    }
 
-    const isMatch = await bcrypt.compare(password, userData.password);
-    if (!isMatch)
-      return res.status(401).json({ error: 'Invalid username or password' });
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ success: false, message: 'Invalid email or password' });
+    }
 
-    const token = jwt.sign(
-      {
-        id: userData._id,
-        username: userData.username,
-        tag: userData.tag,
-      },
-      process.env.ACCESS_TOKEN,
-      { expiresIn: '1h' }
-    );
+    const accessToken = signAccessToken(user);
+    const refreshToken = signRefreshToken(user);
 
-    return res.status(200).json({ token });
+    res
+      .cookie('jid', refreshToken, {
+        httpOnly: true,
+        secure: NODE_ENV === 'production',
+        sameSite: 'strict',
+        path: '/auth/refresh_token'
+      })
+      .status(200)
+      .json({ success: true, accessToken });
 
   } catch (err) {
-    console.error("❌ Login error:", err);
-    return res.status(500).json({ error: 'Server error' });
+    console.error('❌ Login error:', err);
+    return res.status(500).json({ success: false, message: 'Server error' });
   }
+};
+
+exports.logout = (req, res) => {
+  res.clearCookie('jid', {
+    httpOnly: true,
+    secure: NODE_ENV === 'production',
+    sameSite: 'strict',
+    path: '/auth/refresh_token'
+  });
+  return res.status(200).json({ success: true });
+};
+
+exports.refreshToken = (req, res) => {
+  const token = req.cookies.jid;
+  if (!token) {
+    return res.status(401).json({ success: false, accessToken: '' });
+  }
+
+  let payload;
+  try {
+    payload = jwt.verify(token, REFRESH_TOKEN_SECRET);
+  } catch (err) {
+    console.error('❌ Refresh token error:', err);
+    return res.status(401).json({ success: false, accessToken: '' });
+  }
+
+  // Optionally verify user still exists or tokenVersion
+  const accessToken = jwt.sign(
+    { id: payload.id },
+    ACCESS_TOKEN_SECRET,
+    { expiresIn: ACCESS_TOKEN_LIFETIME }
+  );
+
+  return res.json({ success: true, accessToken });
 };

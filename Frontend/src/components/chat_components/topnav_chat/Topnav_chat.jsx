@@ -232,15 +232,27 @@ function Topnav_chat() {
   ), []);
 
   // Button renderer with proper event handling
+  const handleLogout = useCallback(async () => {
+    try {
+      await fetch(`${process.env.REACT_APP_URL}/logout`, {
+        method: 'POST',
+        credentials: 'include',        
+      });
+    } catch (err) {
+      console.error('Logout failed:', err);
+    } finally {
+      localStorage.clear();
+      navigate('/login');
+    }
+  }, [navigate]);
+
   const renderButton = useCallback((message, Icon) => {
     const handleClick = () => {
       if (message === 'Logout') {
-        localStorage.clear();
-        navigate('/login');
+        handleLogout();
+        return;
       }
-      // Add other button handlers here as needed
-    };
-
+  };
     return (
       <div
         className={topnav_chatcss.right_comps}
