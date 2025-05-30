@@ -81,11 +81,23 @@ exports.addFriend = async (req, res) => {
 };
 
 exports.processRequest = [
-  upload.none(), 
+  upload.none(),
   async (req, res) => {
     try {
-      const { message } = req.body;
-      const friend_data = JSON.parse(req.body.friend_data);
+      const { message, friend_data: rawFriendData } = req.body;
+
+      if (!message || typeof rawFriendData !== 'string') {
+        return res.status(400).json({ status: 400, message: 'Missing or invalid fields' });
+      }
+
+      let friend_data;
+      try {
+        friend_data = JSON.parse(rawFriendData);
+      } catch (err) {
+        console.error('❌ Invalid friend_data JSON:', rawFriendData);
+        return res.status(400).json({ status: 400, message: 'Malformed friend_data' });
+      }
+
       const userId = req.userId;
       const friendId = friend_data.id;
 
@@ -119,7 +131,7 @@ exports.processRequest = [
       }
     } catch (err) {
       console.error('❌ processRequest error:', err);
-      res.status(500).json({ message: 'Server error' });
+      res.status(500).json({ message: 'Server error', status: 500 });
     }
   }
 ];
