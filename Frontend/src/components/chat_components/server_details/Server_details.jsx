@@ -13,6 +13,7 @@ import { change_page_id, change_page_name } from '../../../Redux/current_page';
 import Modal from 'react-bootstrap/Modal';
 import Radio from '@mui/material/Radio';
 import { useParams } from 'react-router-dom';
+import VoiceVideoModal from '../../VoiceVideoModal'; 
 
 /**
  * @param {Object} props
@@ -29,6 +30,10 @@ export default function ServerDetails({ new_req_received = () => {}, elem }) {
   const [selectedChannelType, setSelectedChannelType] = useState('text');
   const [newChannelName, setNewChannelName] = useState('');
   const [isCreating, setIsCreating] = useState(false);
+
+  // Voice/Video Modal States
+  const [showVoiceVideoModal, setShowVoiceVideoModal] = useState(false);
+  const [activeVoiceChannel, setActiveVoiceChannel] = useState(null);
 
   const [channels, setChannels] = useState(elem.channels || []);
 
@@ -98,9 +103,23 @@ export default function ServerDetails({ new_req_received = () => {}, elem }) {
 
   const selectChannel = (type, name, id) => {
     if (type === 'text') {
+      // Handle text channel selection
       dispatch(change_page_name(name));
       dispatch(change_page_id(id));
+    } else if (type === 'voice') {
+      // Handle voice channel selection - open voice/video modal
+      setActiveVoiceChannel({
+        id: id,
+        name: name,
+        categoryName: elem.category_name
+      });
+      setShowVoiceVideoModal(true);
     }
+  };
+
+  const closeVoiceVideoModal = () => {
+    setShowVoiceVideoModal(false);
+    setActiveVoiceChannel(null);
   };
 
   return (
@@ -118,17 +137,28 @@ export default function ServerDetails({ new_req_received = () => {}, elem }) {
       {showChannels && channels.map(channel => (
         <div key={channel._id} className={servercss.channels_wrap}>
           <div className={servercss.channels}>
-            <div className={servercss.channel_left} onClick={() => selectChannel(channel.channel_type, channel.channel_name, channel._id)}>
+            <div 
+              className={servercss.channel_left} 
+              onClick={() => selectChannel(channel.channel_type, channel.channel_name, channel._id)}
+            >
               {channel.channel_type === 'text' ? <TagIcon fontSize="small" /> : <VolumeUpIcon fontSize="small" />}
               <div className={servercss.channel_name}>{channel.channel_name}</div>
             </div>
             <div className={servercss.channel_delete}>
-              <DeleteForeverIcon onClick={() => deleteChannel(channel._id)} fontSize="small" style={{ cursor: 'pointer', color: '#e74c3c' }} />
+              <DeleteForeverIcon 
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevent channel selection when deleting
+                  deleteChannel(channel._id);
+                }} 
+                fontSize="small" 
+                style={{ cursor: 'pointer', color: '#e74c3c' }} 
+              />
             </div>
           </div>
         </div>
       ))}
 
+      {/* Create Channel Modal */}
       <Modal show={showCreateModal} centered onHide={closeModal} id={servercss.modal_main_wrap}>
         <div className={servercss.modal_main}>
           <h3>Create Channel in "{elem.category_name}"</h3>
@@ -178,6 +208,17 @@ export default function ServerDetails({ new_req_received = () => {}, elem }) {
           </div>
         </div>
       </Modal>
+
+      {/* Voice/Video Modal */}
+      {activeVoiceChannel && (
+        <VoiceVideoModal
+          isOpen={showVoiceVideoModal}
+          onClose={closeVoiceVideoModal}
+          channelId={activeVoiceChannel.id}
+          channelName={activeVoiceChannel.name}
+          initialVideoEnabled={false} 
+        />
+      )}
     </div>
   );
 }
