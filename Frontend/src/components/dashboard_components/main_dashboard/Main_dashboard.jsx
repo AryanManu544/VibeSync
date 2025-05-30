@@ -63,10 +63,10 @@ function Main_dashboard() {
         switch (option_check) {
           case 1:
           case 2: {
-            const res = await fetch(`${url}/get_friends`, { 
-              headers: { 
-                'x-auth-token': localStorage.getItem('token') 
-              } 
+            const res = await fetch(`${url}/get_friends`, {
+              headers: {
+                'x-auth-token': localStorage.getItem('token')
+              }
             });
             const data = await res.json();
             console.log('Fetched friends data:', data); // Debug log
@@ -118,16 +118,16 @@ function Main_dashboard() {
     dispatch(fetchUserRelations());
   }, [dispatch]);
 
-  useEffect(() => { 
-    dispatch(clearActiveDM()); 
+  useEffect(() => {
+    dispatch(clearActiveDM());
   }, [option_check, dispatch]);
 
-  useEffect(() => { 
-    setimage(IMAGES_MAP[option_check] || online_duckie); 
+  useEffect(() => {
+    setimage(IMAGES_MAP[option_check] || online_duckie);
   }, [option_check]);
 
-  useEffect(() => { 
-    setbutton_state(input.length < 1); 
+  useEffect(() => {
+    setbutton_state(input.length < 1);
   }, [input]);
 
   const button_clicked = useCallback(async (message, friend_data) => {
@@ -181,16 +181,13 @@ function Main_dashboard() {
 
       const formData = new FormData();
       formData.append('friend', input);
-
-      const res = await fetch(`${url}/add_friend`, {
+      const data = await (await fetch(`${url}/add_friend`, {
         method: 'POST',
         headers: {
           'x-auth-token': localStorage.getItem('token'),
         },
         body: formData,
-      });
-
-      const data = await res.json();
+      })).json();
 
       if ([404, 201, 202, 203].includes(data.status)) {
         setalert({ style: 'flex', message: data.message });
@@ -276,7 +273,7 @@ function Main_dashboard() {
   const renderFriendItem = useCallback((elem, index) => {
     // Create a unique key that won't cause conflicts
     const uniqueKey = `friend-${elem.id || index}-${elem.username || 'unknown'}-${index}`;
-    
+
     return (
       <div key={uniqueKey} className={main_dashboardcss.friends_section_wrap}>
         <div id={main_dashboardcss.online_users_wrap}>
