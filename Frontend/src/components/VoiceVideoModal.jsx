@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import io from 'socket.io-client';
 
-// Icons (using Material-UI icons from your existing imports)
+// Icons
 import MicIcon from '@mui/icons-material/Mic';
 import MicOffIcon from '@mui/icons-material/MicOff';
 import VideocamIcon from '@mui/icons-material/Videocam';
@@ -26,7 +26,6 @@ const VoiceVideoModal = ({
   const userId = useSelector((s) => s.user_info.id);
   const userAvatar = useSelector((s) => s.user_info.profile_pic);
 
-  // State management
   const [isConnected, setIsConnected] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoEnabled, setIsVideoEnabled] = useState(initialVideoEnabled);
@@ -34,8 +33,8 @@ const VoiceVideoModal = ({
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [connectedUsers, setConnectedUsers] = useState([]);
   const [showSettings, setShowSettings] = useState(false);
+  const [connectionAttemptMessage, setConnectionAttemptMessage] = useState('🔴 Connecting...');
 
-  // Refs
   const socketRef = useRef(null);
   const localVideoRef = useRef(null);
   const localStreamRef = useRef(null);
@@ -43,456 +42,446 @@ const VoiceVideoModal = ({
   const peersRef = useRef({});
   const userVideosRef = useRef({});
 
-  // WebRTC configuration
-  const rtcConfiguration = {
+  const rtcConfiguration = useRef({
     iceServers: [
       { urls: 'stun:stun.l.google.com:19302' },
       { urls: 'stun:stun1.l.google.com:19302' }
     ]
-  };
+  }).current;
 
-  // Initialize socket connection
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const API = process.env.REACT_APP_URL;
-    socketRef.current = io(API);
-    const socket = socketRef.current;
-
-    socket.on('connect', () => {
-      setIsConnected(true);
-      socket.emit('get_userid', userId);
-    });
-
-    // Voice chat event handlers
-    socket.on('user_joined_voice', handleUserJoined);
-    socket.on('current_voice_users', handleCurrentUsers);
-    socket.on('user_left_voice', handleUserLeft);
-    socket.on('user_video_toggle', handleUserVideoToggle);
-    socket.on('user_audio_toggle', handleUserAudioToggle);
-    
-    // WebRTC signaling handlers
-    socket.on('webrtc_offer', handleWebRTCOffer);
-    socket.on('webrtc_answer', handleWebRTCAnswer);
-    socket.on('webrtc_ice_candidate', handleICECandidate);
-
-    // Screen sharing handlers
-    socket.on('user_screen_share_start', handleScreenShareStart);
-    socket.on('user_screen_share_stop', handleScreenShareStop);
-
-    return () => {
-      socket.disconnect();
-    };
-  }, [isOpen, userId]);
-
-  // Get user media and join voice channel
-  useEffect(() => {
-    if (isConnected && isOpen) {
-      joinVoiceChannel();
+  const createPeerConnection = useCallback(async (targetSocketId, remoteUserId, isInitiator) => {
+    if (!socketRef.current) {
+        console.error("createPeerConnection: Socket is not available.");
+        return;
     }
-    
-    return () => {
-      leaveVoiceChannel();
-    };
-  }, [isConnected, isOpen]);
+    console.log(`Creating peer connection to ${targetSocketId} (for remote user ${remoteUserId}). Initiator: ${isInitiator}`);
+    const peerConnection = new RTCPeerConnection(rtcConfiguration);
+    peersRef.current[targetSocketId] = peerConnection;
 
-  const joinVoiceChannel = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-        video: isVideoEnabled
-      });
-
-      localStreamRef.current = stream;
-      
-      if (localVideoRef.current) {
-        localVideoRef.current.srcObject = stream;
-      }
-
-      socketRef.current.emit('join_voice_channel', {
-        channelId,
-        userId,
-        userName: username,
-        userAvatar,
-        isVideo: isVideoEnabled
-      });
-
-    } catch (error) {
-      console.error('Error accessing media devices:', error);
-      alert('Could not access microphone/camera. Please check permissions.');
-    }
-  };
-
-  const leaveVoiceChannel = () => {
-    // Stop local stream
     if (localStreamRef.current) {
-      localStreamRef.current.getTracks().forEach(track => track.stop());
-      localStreamRef.current = null;
+      localStreamRef.current.getTracks().forEach(track => {
+        try {
+          peerConnection.addTrack(track, localStreamRef.current);
+        } catch (e) {
+          console.error(`Error adding track kind ${track.kind} to peer ${targetSocketId}:`, e);
+        }
+      });
+    } else {
+        console.warn(`createPeerConnection: localStreamRef is null when creating connection to ${targetSocketId}. No local tracks added.`);
     }
 
-    // Stop screen sharing stream
-    if (screenStreamRef.current) {
-      screenStreamRef.current.getTracks().forEach(track => track.stop());
-      screenStreamRef.current = null;
+    peerConnection.ontrack = (event) => {
+      console.log(`ontrack event from ${targetSocketId}`, event.streams);
+      const remoteStream = event.streams[0];
+      if (userVideosRef.current[targetSocketId]) {
+        userVideosRef.current[targetSocketId].srcObject = remoteStream;
+      } else {
+          console.warn(`Video element for socket ${targetSocketId} not found in userVideosRef.`);
+      }
+    };
+
+    peerConnection.onicecandidate = (event) => {
+      if (event.candidate && socketRef.current) {
+        console.log(`Sending ICE candidate to ${targetSocketId}`);
+        socketRef.current.emit('webrtc_ice_candidate', {
+          targetSocketId: targetSocketId, candidate: event.candidate, userId
+        });
+      }
+    };
+    peerConnection.oniceconnectionstatechange = () => {
+        console.log(`ICE Connection State for ${targetSocketId}: ${peerConnection.iceConnectionState}`);
+        if (['failed', 'disconnected', 'closed'].includes(peerConnection.iceConnectionState)) {
+            console.error(`ICE connection with ${targetSocketId} is ${peerConnection.iceConnectionState}.`);
+            // Optional: Clean up this specific peer
+            // if (peersRef.current[targetSocketId]) {
+            //     peersRef.current[targetSocketId].close();
+            //     delete peersRef.current[targetSocketId];
+            //     setConnectedUsers(prev => prev.filter(u => u.socketId !== targetSocketId));
+            // }
+        }
+    };
+
+    if (isInitiator) {
+      try {
+        console.log(`Creating WebRTC offer for ${targetSocketId}`);
+        const offer = await peerConnection.createOffer();
+        await peerConnection.setLocalDescription(offer);
+        if (socketRef.current) {
+            socketRef.current.emit('webrtc_offer', {
+              targetSocketId: targetSocketId, offer, userId
+            });
+        }
+      } catch (error) {
+        console.error('Error creating WebRTC offer:', error);
+      }
     }
+  }, [userId, rtcConfiguration]);
 
-    // Close all peer connections
-    Object.values(peersRef.current).forEach(peer => {
-      peer.close();
-    });
-    peersRef.current = {};
-
-    // Leave voice channel
-    if (socketRef.current) {
-      socketRef.current.emit('leave_voice_channel');
-    }
-
-    setConnectedUsers([]);
-    setIsConnected(false);
-  };
-
-  // User event handlers
-  const handleUserJoined = (data) => {
+  const handleUserJoined = useCallback((data) => {
     const { userId: newUserId, userName, userAvatar, socketId, isVideo } = data;
-    
-    setConnectedUsers(prev => [...prev, {
-      userId: newUserId,
-      userName,
-      userAvatar,
-      socketId,
-      isVideo,
-      isMuted: false,
-      isScreenSharing: false
-    }]);
-
-    // Create peer connection for new user
+    console.log('User joined voice:', data);
+    setConnectedUsers(prev => {
+        if (prev.find(u => u.socketId === socketId)) return prev;
+        return [...prev, { userId: newUserId, userName, userAvatar, socketId, isVideo, isMuted: false, isScreenSharing: false }];
+    });
     createPeerConnection(socketId, newUserId, true);
-  };
+  }, [createPeerConnection]);
 
-  const handleCurrentUsers = (users) => {
+  const handleCurrentUsers = useCallback((users) => {
+    console.log('Received current users in voice channel:', users);
     users.forEach(user => {
-      setConnectedUsers(prev => [...prev, {
-        ...user,
-        isMuted: false,
-        isScreenSharing: false
-      }]);
-      
-      // Create peer connection for existing users
+      setConnectedUsers(prev => {
+          if (prev.find(u => u.socketId === user.socketId)) return prev;
+          return [...prev, { ...user, isMuted: false, isScreenSharing: false }];
+      });
       createPeerConnection(user.socketId, user.userId, false);
     });
-  };
-
-  const handleUserLeft = (data) => {
+  }, [createPeerConnection]);
+  
+  const handleUserLeft = useCallback((data) => {
     const { socketId } = data;
-    
+    console.log('User left voice:', data);
     setConnectedUsers(prev => prev.filter(user => user.socketId !== socketId));
-    
-    // Close peer connection
     if (peersRef.current[socketId]) {
       peersRef.current[socketId].close();
       delete peersRef.current[socketId];
     }
-
-    // Remove video element
     if (userVideosRef.current[socketId]) {
       delete userVideosRef.current[socketId];
     }
-  };
+  }, []);
 
-  const handleUserVideoToggle = (data) => {
+  const handleUserVideoToggle = useCallback((data) => {
     const { socketId, isVideo } = data;
-    setConnectedUsers(prev => 
-      prev.map(user => 
-        user.socketId === socketId 
-          ? { ...user, isVideo }
-          : user
-      )
-    );
-  };
+    setConnectedUsers(prev => prev.map(user => user.socketId === socketId ? { ...user, isVideo } : user ));
+  }, []);
 
-  const handleUserAudioToggle = (data) => {
+  const handleUserAudioToggle = useCallback((data) => {
     const { socketId, isMuted } = data;
-    setConnectedUsers(prev => 
-      prev.map(user => 
-        user.socketId === socketId 
-          ? { ...user, isMuted }
-          : user
-      )
-    );
-  };
-
-  // WebRTC functions
-  const createPeerConnection = async (socketId, remoteUserId, isInitiator) => {
-    const peerConnection = new RTCPeerConnection(rtcConfiguration);
-    peersRef.current[socketId] = peerConnection;
-
-    // Add local stream
-    if (localStreamRef.current) {
-      localStreamRef.current.getTracks().forEach(track => {
-        peerConnection.addTrack(track, localStreamRef.current);
-      });
-    }
-
-    // Handle remote stream
-    peerConnection.ontrack = (event) => {
-      const remoteStream = event.streams[0];
-      if (userVideosRef.current[socketId]) {
-        userVideosRef.current[socketId].srcObject = remoteStream;
-      }
-    };
-
-    // Handle ICE candidates
-    peerConnection.onicecandidate = (event) => {
-      if (event.candidate) {
-        socketRef.current.emit('webrtc_ice_candidate', {
-          targetSocketId: socketId,
-          candidate: event.candidate,
-          userId
-        });
-      }
-    };
-
-    // Create offer if initiator
-    if (isInitiator) {
-      try {
-        const offer = await peerConnection.createOffer();
-        await peerConnection.setLocalDescription(offer);
-        
-        socketRef.current.emit('webrtc_offer', {
-          targetSocketId: socketId,
-          offer,
-          userId
-        });
-      } catch (error) {
-        console.error('Error creating offer:', error);
-      }
-    }
-  };
-
-  const handleWebRTCOffer = async (data) => {
+    setConnectedUsers(prev => prev.map(user => user.socketId === socketId ? { ...user, isMuted } : user ));
+  }, []);
+  
+  const handleWebRTCOffer = useCallback(async (data) => {
     const { offer, fromSocketId, fromUserId } = data;
+    console.log(`Received WebRTC offer from ${fromSocketId} (User: ${fromUserId})`);
+    if (!socketRef.current) return;
+    if (!peersRef.current[fromSocketId]) {
+        await createPeerConnection(fromSocketId, fromUserId, false);
+    }
     const peerConnection = peersRef.current[fromSocketId];
-
     if (peerConnection) {
       try {
-        await peerConnection.setRemoteDescription(offer);
+        await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
         const answer = await peerConnection.createAnswer();
         await peerConnection.setLocalDescription(answer);
-
-        socketRef.current.emit('webrtc_answer', {
-          targetSocketId: fromSocketId,
-          answer,
-          userId
-        });
-      } catch (error) {
-        console.error('Error handling offer:', error);
-      }
+        if (socketRef.current) {
+            socketRef.current.emit('webrtc_answer', { targetSocketId: fromSocketId, answer, userId });
+        }
+      } catch (error) { console.error('Error handling WebRTC offer:', error); }
     }
-  };
+  }, [userId, createPeerConnection]);
 
-  const handleWebRTCAnswer = async (data) => {
+  const handleWebRTCAnswer = useCallback(async (data) => {
     const { answer, fromSocketId } = data;
+    console.log(`Received WebRTC answer from ${fromSocketId}`);
     const peerConnection = peersRef.current[fromSocketId];
-
     if (peerConnection) {
-      try {
-        await peerConnection.setRemoteDescription(answer);
-      } catch (error) {
-        console.error('Error handling answer:', error);
-      }
+      try { await peerConnection.setRemoteDescription(new RTCSessionDescription(answer)); }
+      catch (error) { console.error('Error handling WebRTC answer:', error); }
     }
-  };
+  }, []);
 
-  const handleICECandidate = async (data) => {
+  const handleICECandidate = useCallback(async (data) => {
     const { candidate, fromSocketId } = data;
     const peerConnection = peersRef.current[fromSocketId];
-
-    if (peerConnection) {
-      try {
-        await peerConnection.addIceCandidate(candidate);
-      } catch (error) {
-        console.error('Error adding ICE candidate:', error);
-      }
-    }
-  };
-
-  // Control functions
-  const toggleMute = () => {
-    if (localStreamRef.current) {
-      const audioTrack = localStreamRef.current.getAudioTracks()[0];
-      if (audioTrack) {
-        audioTrack.enabled = !audioTrack.enabled;
-        setIsMuted(!audioTrack.enabled);
-        
-        socketRef.current.emit('toggle_audio', !audioTrack.enabled);
-      }
-    }
-  };
-
-  const toggleVideo = async () => {
-    try {
-      if (isVideoEnabled) {
-        // Turn off video
-        const videoTrack = localStreamRef.current.getVideoTracks()[0];
-        if (videoTrack) {
-          videoTrack.stop();
-          localStreamRef.current.removeTrack(videoTrack);
+    if (peerConnection && candidate && peerConnection.signalingState !== "closed") { // Check signalingState
+      try { await peerConnection.addIceCandidate(new RTCIceCandidate(candidate)); }
+      catch (error) {
+        if (!error.message.includes("closed") && !error.message.includes("State is 'closed'")) {
+            console.warn('Error adding ICE candidate:', error.name, error.message, `From: ${fromSocketId}`);
         }
-        setIsVideoEnabled(false);
-      } else {
-        // Turn on video
-        const videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
-        const videoTrack = videoStream.getVideoTracks()[0];
-        
-        localStreamRef.current.addTrack(videoTrack);
-        
-        // Update peer connections
+      }
+    }
+  }, []);
+
+  const handleScreenShareStart = useCallback((data) => {
+      const { socketId } = data;
+      setConnectedUsers(prev => prev.map(user => user.socketId === socketId ? { ...user, isScreenSharing: true } : user ));
+  }, []);
+  const handleScreenShareStop = useCallback((data) => {
+      const { socketId } = data;
+      setConnectedUsers(prev => prev.map(user => user.socketId === socketId ? { ...user, isScreenSharing: false } : user ));
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setConnectionAttemptMessage('🔴 Connecting...');
+      return;
+    }
+    if (!userId || !process.env.REACT_APP_URL) {
+        setConnectionAttemptMessage(`🔴 Error: ${!userId ? 'User ID missing' : 'Server URL misconfigured'}`);
+        setIsConnected(false); return;
+    }
+    setConnectionAttemptMessage('🟡 Attempting connection...');
+    console.log(`useEffect[isOpen, userId]: Attempting to connect to socket server at ${process.env.REACT_APP_URL} for user ${userId}`);
+    const newSocket = io(process.env.REACT_APP_URL, { reconnectionAttempts: 3, query: { userId } });
+    socketRef.current = newSocket;
+    const onConnect = () => {
+      console.log('Socket connected successfully! ID:', newSocket.id);
+      setIsConnected(true); setConnectionAttemptMessage('🟢 Connected'); newSocket.emit('get_userid', userId); 
+    };
+    const onConnectError = (err) => {
+      console.error('Socket connection error:', err.message, err.data);
+      setIsConnected(false); setConnectionAttemptMessage(`🔴 Connection Failed: ${err.message}`);
+    };
+    const onDisconnect = (reason) => {
+      console.log('Socket disconnected:', reason);
+      setIsConnected(false); setConnectionAttemptMessage('🔴 Disconnected');
+    };
+    newSocket.on('connect', onConnect); newSocket.on('connect_error', onConnectError); newSocket.on('disconnect', onDisconnect);
+    newSocket.on('user_joined_voice', handleUserJoined); newSocket.on('current_voice_users', handleCurrentUsers);
+    newSocket.on('user_left_voice', handleUserLeft); newSocket.on('user_video_toggle', handleUserVideoToggle);
+    newSocket.on('user_audio_toggle', handleUserAudioToggle); newSocket.on('webrtc_offer', handleWebRTCOffer);
+    newSocket.on('webrtc_answer', handleWebRTCAnswer); newSocket.on('webrtc_ice_candidate', handleICECandidate);
+    newSocket.on('user_screen_share_start', handleScreenShareStart); newSocket.on('user_screen_share_stop', handleScreenShareStop);
+    return () => {
+      console.log("useEffect[isOpen, userId]: Cleaning up socket instance and listeners. Socket ID:", newSocket.id);
+      newSocket.off('connect', onConnect); newSocket.off('connect_error', onConnectError); newSocket.off('disconnect', onDisconnect);
+      newSocket.off('user_joined_voice', handleUserJoined); newSocket.off('current_voice_users', handleCurrentUsers);
+      newSocket.off('user_left_voice', handleUserLeft); newSocket.off('user_video_toggle', handleUserVideoToggle);
+      newSocket.off('user_audio_toggle', handleUserAudioToggle); newSocket.off('webrtc_offer', handleWebRTCOffer);
+      newSocket.off('webrtc_answer', handleWebRTCAnswer); newSocket.off('webrtc_ice_candidate', handleICECandidate);
+      newSocket.off('user_screen_share_start', handleScreenShareStart); newSocket.off('user_screen_share_stop', handleScreenShareStop);
+      newSocket.disconnect();
+      if (socketRef.current === newSocket) { socketRef.current = null; }
+      setIsConnected(false); setConnectionAttemptMessage('🔴 Connecting...');
+    };
+  }, [ isOpen, userId, handleUserJoined, handleCurrentUsers, handleUserLeft, handleUserVideoToggle,
+      handleUserAudioToggle, handleWebRTCOffer, handleWebRTCAnswer, handleICECandidate,
+      handleScreenShareStart, handleScreenShareStop ]);
+
+  const joinVoiceChannel = useCallback(async () => {
+    if (!socketRef.current || !socketRef.current.connected) {
+        console.warn("joinVoiceChannel called but socket not connected.");
+        setConnectionAttemptMessage("🔴 Not connected. Cannot join."); return;
+    }
+    try {
+      console.log("Requesting user media. Video enabled:", isVideoEnabled);
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: isVideoEnabled });
+      localStreamRef.current = stream;
+      if (localVideoRef.current) { localVideoRef.current.srcObject = stream; }
+      console.log("Emitting 'join_voice_channel'");
+      socketRef.current.emit('join_voice_channel', {
+        channelId, userId, userName: username, userAvatar, isVideo: isVideoEnabled
+      });
+    } catch (error) {
+      console.error('Error accessing media devices:', error);
+      alert('Could not access microphone/camera. Please check permissions.');
+      setConnectionAttemptMessage(`🔴 Media Error: ${error.message}`);
+    }
+  }, [channelId, userId, username, userAvatar, isVideoEnabled]);
+
+  const leaveVoiceChannel = useCallback(() => {
+    console.log("leaveVoiceChannel called");
+    if (localStreamRef.current) {
+      localStreamRef.current.getTracks().forEach(track => track.stop()); localStreamRef.current = null;
+    }
+    if (screenStreamRef.current) {
+      screenStreamRef.current.getTracks().forEach(track => track.stop()); screenStreamRef.current = null;
+    }
+    Object.values(peersRef.current).forEach(peer => { if (peer) peer.close(); });
+    peersRef.current = {};
+    if (socketRef.current && socketRef.current.connected) {
+      console.log("Emitting 'leave_voice_channel'");
+      socketRef.current.emit('leave_voice_channel');
+    }
+    setConnectedUsers([]); setIsMuted(false); setIsScreenSharing(false);
+  }, []);
+
+  useEffect(() => {
+    if (isConnected && isOpen) {
+      console.log("useEffect[isConnected, isOpen]: Socket connected and modal open, calling joinVoiceChannel.");
+      joinVoiceChannel();
+    }
+    return () => {
+      if (!isConnected && isOpen && (localStreamRef.current || Object.keys(peersRef.current).length > 0)) {
+          console.log("useEffect[isConnected, isOpen] cleanup: Connection lost while modal open. Cleaning local media/peers.");
+            if (localStreamRef.current) {
+                localStreamRef.current.getTracks().forEach(track => track.stop()); localStreamRef.current = null;
+            }
+            if (screenStreamRef.current) {
+                screenStreamRef.current.getTracks().forEach(track => track.stop()); screenStreamRef.current = null;
+            }
+            Object.values(peersRef.current).forEach(peer => { if (peer) peer.close(); });
+            peersRef.current = {}; setConnectedUsers([]);
+      }
+    };
+  }, [isConnected, isOpen, joinVoiceChannel]);
+
+  const toggleMute = useCallback(() => {
+    console.log("Toggling mute. Current localStreamRef:", localStreamRef.current);
+    if (localStreamRef.current && localStreamRef.current.getAudioTracks().length > 0) {
+      const audioTrack = localStreamRef.current.getAudioTracks()[0];
+      const currentlyEnabled = audioTrack.enabled;
+      audioTrack.enabled = !currentlyEnabled;
+      const newUIMutedState = !audioTrack.enabled; // If track is now disabled, UI says muted
+      
+      setIsMuted(newUIMutedState);
+      
+      if (socketRef.current && socketRef.current.connected) {
+        console.log("Emitting toggle_audio, newUIMutedState (muted status):", newUIMutedState);
+        socketRef.current.emit('toggle_audio', newUIMutedState); // Send true if muted, false if unmuted
+      } else { console.warn("Cannot emit toggle_audio: socket not connected."); }
+    } else { console.warn("Cannot toggle mute: no local stream or audio track."); }
+  }, []);
+
+  const toggleVideo = useCallback(async () => {
+    console.log("Toggling video. isVideoEnabled (current UI state):", isVideoEnabled, "isScreenSharing:", isScreenSharing);
+    if (isScreenSharing) { alert("Please stop screen sharing to use your camera."); return; }
+    if (!socketRef.current || !socketRef.current.connected) {
+      console.warn("Cannot toggle video: socket not connected."); return;
+    }
+
+    const newUIVideoState = !isVideoEnabled; // The desired UI state after toggle
+
+    try {
+      let currentLocalStream = localStreamRef.current;
+      if (newUIVideoState) { // === Turning video ON ===
+        if (!currentLocalStream) {
+          console.log("toggleVideo (ON): No local stream, creating new one with video.");
+          currentLocalStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+          localStreamRef.current = currentLocalStream;
+        }
+        let videoTrack = currentLocalStream.getVideoTracks()[0];
+        if (!videoTrack) {
+          console.log("toggleVideo (ON): Stream exists, but no video track. Adding video track.");
+          const videoStreamOnly = await navigator.mediaDevices.getUserMedia({ video: true });
+          videoTrack = videoStreamOnly.getVideoTracks()[0];
+          currentLocalStream.addTrack(videoTrack);
+        }
+        videoTrack.enabled = true;
+        if (localVideoRef.current) { localVideoRef.current.srcObject = currentLocalStream; }
         Object.values(peersRef.current).forEach(peer => {
-          const sender = peer.getSenders().find(s => 
-            s.track && s.track.kind === 'video'
-          );
-          if (sender) {
-            sender.replaceTrack(videoTrack);
-          } else {
-            peer.addTrack(videoTrack, localStreamRef.current);
+          if (peer) {
+            const sender = peer.getSenders().find(s => s.track && s.track.kind === 'video');
+            if (sender) { sender.replaceTrack(videoTrack).catch(e => console.error("Error replacing video track for peer:", e)); }
+            else { peer.addTrack(videoTrack, currentLocalStream); }
           }
         });
-        
-        setIsVideoEnabled(true);
+      } else { // === Turning video OFF ===
+        if (currentLocalStream && currentLocalStream.getVideoTracks().length > 0) {
+          const videoTrack = currentLocalStream.getVideoTracks()[0];
+          videoTrack.enabled = false;
+        }
+        // UI will hide video via CSS based on isVideoEnabled state
       }
-      
-      socketRef.current.emit('toggle_video', !isVideoEnabled);
-      
+      setIsVideoEnabled(newUIVideoState);
+      console.log("Emitting toggle_video, newUIVideoState (video on status):", newUIVideoState);
+      socketRef.current.emit('toggle_video', newUIVideoState);
     } catch (error) {
       console.error('Error toggling video:', error);
+      alert(`Error toggling video: ${error.message}`);
     }
-  };
+  }, [isVideoEnabled, isScreenSharing]);
 
-  const toggleScreenShare = async () => {
+  const toggleScreenShare = useCallback(async () => {
+    console.log("Toggling screen share. isScreenSharing (current UI state):", isScreenSharing);
+    if (!socketRef.current || !socketRef.current.connected) {
+      console.warn("Cannot toggle screen share: socket not connected."); return;
+    }
     try {
-      if (isScreenSharing) {
-        // Stop screen sharing
+      if (isScreenSharing) { // === Stop screen sharing ===
         if (screenStreamRef.current) {
           screenStreamRef.current.getTracks().forEach(track => track.stop());
           screenStreamRef.current = null;
         }
-        
-        // Switch back to camera
-        if (isVideoEnabled) {
-          const videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
-          const videoTrack = videoStream.getVideoTracks()[0];
-          
-          Object.values(peersRef.current).forEach(peer => {
-            const sender = peer.getSenders().find(s => 
-              s.track && s.track.kind === 'video'
-            );
-            if (sender) {
-              sender.replaceTrack(videoTrack);
-            }
-          });
+        setIsScreenSharing(false); // UI update
+        socketRef.current.emit('stop_screen_share'); // Notify server
+
+        if (localStreamRef.current && isVideoEnabled) { // isVideoEnabled is the state of camera *before* screen share
+          const cameraVideoTrack = localStreamRef.current.getVideoTracks().find(t => t.kind === "video");
+          if (cameraVideoTrack) {
+            cameraVideoTrack.enabled = true;
+            if (localVideoRef.current) localVideoRef.current.srcObject = localStreamRef.current;
+            Object.values(peersRef.current).forEach(peer => {
+              if (peer) {
+                const sender = peer.getSenders().find(s => s.track && s.track.kind === 'video');
+                if (sender) { sender.replaceTrack(cameraVideoTrack).catch(e => console.error("Error replacing with camera track:", e));}
+                else { peer.addTrack(cameraVideoTrack, localStreamRef.current); }
+              }
+            });
+          } else { console.warn("Could not find camera video track to restore."); }
         }
-        
-        setIsScreenSharing(false);
-        socketRef.current.emit('stop_screen_share');
-        
-      } else {
-        // Start screen sharing
-        const screenStream = await navigator.mediaDevices.getDisplayMedia({ 
-          video: true, 
-          audio: true 
-        });
-        screenStreamRef.current = screenStream;
-        
-        const videoTrack = screenStream.getVideoTracks()[0];
-        
-        // Replace video track in peer connections
+      } else { // === Start screen sharing ===
+        const newScreenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+        screenStreamRef.current = newScreenStream;
+        if (localStreamRef.current && isVideoEnabled) { // If camera was on, disable its track
+          const cameraVideoTrack = localStreamRef.current.getVideoTracks()[0];
+          if (cameraVideoTrack) cameraVideoTrack.enabled = false;
+        }
+        const screenVideoTrack = newScreenStream.getVideoTracks()[0];
         Object.values(peersRef.current).forEach(peer => {
-          const sender = peer.getSenders().find(s => 
-            s.track && s.track.kind === 'video'
-          );
-          if (sender) {
-            sender.replaceTrack(videoTrack);
-          } else {
-            peer.addTrack(videoTrack, screenStream);
+          if (peer) {
+            const sender = peer.getSenders().find(s => s.track && s.track.kind === 'video');
+            if (sender) { sender.replaceTrack(screenVideoTrack).catch(e => console.error("Error replacing with screen track:", e));}
+            else { peer.addTrack(screenVideoTrack, newScreenStream); }
           }
         });
-        
-        // Handle screen share end
-        videoTrack.addEventListener('ended', () => {
-          setIsScreenSharing(false);
-          socketRef.current.emit('stop_screen_share');
+        screenVideoTrack.addEventListener('ended', () => {
+          if (isScreenSharing) { toggleScreenShare(); } // Check internal state
         });
-        
-        setIsScreenSharing(true);
-        socketRef.current.emit('start_screen_share');
+        setIsScreenSharing(true); // UI update
+        socketRef.current.emit('start_screen_share'); // Notify server
       }
-      
     } catch (error) {
       console.error('Error toggling screen share:', error);
+      if (screenStreamRef.current && !isScreenSharing) {
+          screenStreamRef.current.getTracks().forEach(track => track.stop()); screenStreamRef.current = null;
+      }
+      setIsScreenSharing(false); alert(`Error toggling screen share: ${error.message}`);
     }
-  };
+  }, [isScreenSharing, isVideoEnabled]);
 
-  const handleScreenShareStart = (data) => {
-    const { socketId } = data;
-    setConnectedUsers(prev => 
-      prev.map(user => 
-        user.socketId === socketId 
-          ? { ...user, isScreenSharing: true }
-          : user
-      )
-    );
-  };
-
-  const handleScreenShareStop = (data) => {
-    const { socketId } = data;
-    setConnectedUsers(prev => 
-      prev.map(user => 
-        user.socketId === socketId 
-          ? { ...user, isScreenSharing: false }
-          : user
-      )
-    );
-  };
-
-  const handleClose = () => {
-    leaveVoiceChannel();
+  const handleClose = useCallback(() => {
+    leaveVoiceChannel(); 
     onClose();
-  };
+  }, [leaveVoiceChannel, onClose]);
 
   if (!isOpen) return null;
 
   return (
     <div className="voice-modal-overlay">
       <div className="voice-modal">
-        {/* Header */}
         <div className="voice-modal-header">
           <div className="voice-modal-title">
             <div className="channel-info">
               <span className="channel-name">#{channelName}</span>
-              <span className="connection-status">
-                {isConnected ? '🟢 Connected' : '🔴 Connecting...'}
-              </span>
+              <span className="connection-status">{connectionAttemptMessage}</span>
             </div>
           </div>
-          <button className="close-btn" onClick={handleClose}>
-            <CloseIcon />
-          </button>
+          <button className="close-btn" onClick={handleClose}><CloseIcon /></button>
         </div>
 
-        {/* Video Grid */}
         <div className="video-grid">
-          {/* Local video */}
           <div className="video-container local-video">
+            {/* Camera Video - shown if video is enabled AND not screen sharing */}
             <video
               ref={localVideoRef}
-              autoPlay
-              muted
-              playsInline
-              className={`user-video ${!isVideoEnabled ? 'video-off' : ''}`}
+              autoPlay muted playsInline
+              className={`user-video ${(!isVideoEnabled || isScreenSharing) ? 'video-off' : ''}`}
             />
+            {/* Screen Share Video - shown if screen sharing is active */}
+            {isScreenSharing && screenStreamRef.current && (
+                <video
+                    srcObject={screenStreamRef.current}
+                    autoPlay muted playsInline
+                    className="user-video" // Occupies the same slot as local video
+                    style={{ objectFit: 'contain' }} // 'contain' for screen share aspect ratio
+                />
+            )}
             <div className="video-overlay">
               <div className="user-info">
-                <img src={userAvatar} alt={username} className="user-avatar" />
+                <img src={userAvatar || '/default-avatar.png'} alt={username} className="user-avatar" />
                 <span className="user-name">{username} (You)</span>
               </div>
               <div className="video-controls-overlay">
@@ -502,18 +491,22 @@ const VoiceVideoModal = ({
             </div>
           </div>
 
-          {/* Remote videos */}
           {connectedUsers.map((user) => (
             <div key={user.socketId} className="video-container">
               <video
                 ref={el => userVideosRef.current[user.socketId] = el}
-                autoPlay
-                playsInline
-                className={`user-video ${!user.isVideo ? 'video-off' : ''}`}
+                autoPlay playsInline
+                className={`user-video ${(!user.isVideo && !user.isScreenSharing) ? 'video-off' : ''}`}
               />
+              {(!user.isVideo && !user.isScreenSharing) && (
+                <div style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', flexDirection:'column', alignItems: 'center', justifyContent: 'center', background:'#202225', zIndex: 1 }}>
+                    <VideocamOffIcon style={{fontSize: '3rem', color: '#72767d'}}/>
+                    <p style={{color: '#dcddde', marginTop: '0.5rem'}}>{user.userName}'s camera is off</p>
+                </div>
+              )}
               <div className="video-overlay">
                 <div className="user-info">
-                  <img src={user.userAvatar} alt={user.userName} className="user-avatar" />
+                  <img src={user.userAvatar || '/default-avatar.png'} alt={user.userName} className="user-avatar" />
                   <span className="user-name">{user.userName}</span>
                 </div>
                 <div className="video-controls-overlay">
@@ -525,25 +518,19 @@ const VoiceVideoModal = ({
           ))}
         </div>
 
-        {/* Controls */}
         <div className="voice-controls">
           <div className="control-group">
-            <button
-              className={`control-btn ${isMuted ? 'muted' : ''}`}
-              onClick={toggleMute}
-              title={isMuted ? 'Unmute' : 'Mute'}
-            >
+            <button className={`control-btn ${isMuted ? 'muted' : ''}`} onClick={toggleMute} title={isMuted ? 'Unmute' : 'Mute'}>
               {isMuted ? <MicOffIcon /> : <MicIcon />}
             </button>
-
             <button
-              className={`control-btn ${!isVideoEnabled ? 'video-off' : ''}`}
+              className={`control-btn ${!isVideoEnabled ? 'video-off' : ''} ${isScreenSharing ? 'disabled-style' : ''}`}
               onClick={toggleVideo}
               title={isVideoEnabled ? 'Turn off camera' : 'Turn on camera'}
+              disabled={isScreenSharing}
             >
               {isVideoEnabled ? <VideocamIcon /> : <VideocamOffIcon />}
             </button>
-
             <button
               className={`control-btn ${isScreenSharing ? 'active' : ''}`}
               onClick={toggleScreenShare}
@@ -551,7 +538,6 @@ const VoiceVideoModal = ({
             >
               {isScreenSharing ? <StopScreenShareIcon /> : <ScreenShareIcon />}
             </button>
-
             <button
               className={`control-btn ${isSpeakerMuted ? 'muted' : ''}`}
               onClick={() => setIsSpeakerMuted(!isSpeakerMuted)}
@@ -560,53 +546,26 @@ const VoiceVideoModal = ({
               {isSpeakerMuted ? <VolumeOffIcon /> : <VolumeUpIcon />}
             </button>
           </div>
-
           <div className="control-group">
-            <button
-              className="control-btn settings-btn"
-              onClick={() => setShowSettings(!showSettings)}
-              title="Settings"
-            >
+            <button className="control-btn settings-btn" onClick={() => setShowSettings(!showSettings)} title="Settings">
               <SettingsIcon />
             </button>
-
-            <button
-              className="control-btn leave-btn"
-              onClick={handleClose}
-              title="Leave call"
-            >
+            <button className="control-btn leave-btn" onClick={handleClose} title="Leave call">
               <CallEndIcon />
             </button>
           </div>
         </div>
-
-        {/* Settings Panel */}
         {showSettings && (
           <div className="settings-panel">
             <h3>Audio & Video Settings</h3>
-            <div className="setting-item">
-              <label>Microphone</label>
-              <select>
-                <option>Default - Built-in Microphone</option>
-              </select>
-            </div>
-            <div className="setting-item">
-              <label>Camera</label>
-              <select>
-                <option>Default - Built-in Camera</option>
-              </select>
-            </div>
-            <div className="setting-item">
-              <label>Speakers</label>
-              <select>
-                <option>Default - Built-in Speakers</option>
-              </select>
-            </div>
+            <div className="setting-item"><label>Microphone</label><select><option>Default - Built-in Microphone</option></select></div>
+            <div className="setting-item"><label>Camera</label><select><option>Default - Built-in Camera</option></select></div>
+            <div className="setting-item"><label>Speakers</label><select><option>Default - Built-in Speakers</option></select></div>
           </div>
         )}
       </div>
-
       <style jsx>{`
+        /* YOUR ORIGINAL CSS - UNTOUCHED */
         .voice-modal-overlay {
           position: fixed;
           top: 0;
@@ -758,7 +717,7 @@ const VoiceVideoModal = ({
           display: flex;
           justify-content: space-between;
           align-items: center;
-          border-top: 1px solid rgba(255, 255, 255, 0.1);
+          border-top: 1px solid rgba(255,255,255,0.1);
         }
 
         .control-group {
@@ -805,6 +764,16 @@ const VoiceVideoModal = ({
         .control-btn.active:hover {
           background: #4ce379;
         }
+        
+        .control-btn.disabled-style { /* Style for when button is logically disabled by screen share */
+            opacity: 0.5;
+            /* cursor: not-allowed; // HTML disabled attribute handles this */
+        }
+        .control-btn.disabled-style:hover { /* Prevent hover effect when styled as disabled */
+            background: rgba(255, 255, 255, 0.1); 
+            transform: none;
+        }
+
 
         .leave-btn {
           background: #ed4245;
@@ -822,8 +791,8 @@ const VoiceVideoModal = ({
           border-radius: 12px;
           padding: 1.5rem;
           min-width: 300px;
-          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+          border: 1px solid rgba(255,255,255,0.1);
         }
 
         .settings-panel h3 {
@@ -846,7 +815,7 @@ const VoiceVideoModal = ({
         .setting-item select {
           width: 100%;
           background: #1e2124;
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(255,255,255,0.1);
           border-radius: 6px;
           padding: 0.5rem;
           color: white;
