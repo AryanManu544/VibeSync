@@ -178,7 +178,6 @@ function Main_dashboard() {
     e.preventDefault();
     try {
       setLoading(true);
-
       const formData = new FormData();
       formData.append('friend', input);
       const data = await (await fetch(`${url}/add_friend`, {

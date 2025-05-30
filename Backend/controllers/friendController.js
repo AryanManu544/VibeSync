@@ -10,6 +10,14 @@ function checkExists(arr, id) {
 exports.addFriend = async (req, res) => {
   const { friend } = req.body;
   const userId = req.userId;
+ if (typeof friend !== 'string') {
+    return res
+      .status(400)
+      .json({ 
+        message: '"friend" is required and must be a string like "username#1234"', 
+        status: 400 
+      });
+  }
 
   const hashIndex = friend.indexOf('#');
   if (hashIndex === -1) {
