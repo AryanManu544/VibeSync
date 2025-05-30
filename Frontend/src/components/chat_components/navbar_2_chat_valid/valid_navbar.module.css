@@ -53,7 +53,7 @@
 
 /* Enhanced Modal Styles */
 .modal_main {
-    background: linear-gradient(135deg, #2C2F36 0%, #36393F 100%);
+    background: linear-gradient( 145deg, rgba(143, 6, 222, 0.8) 0%, rgba(56, 0, 139, 0.3) 50%, rgba(42, 0, 84, 0.8) 100% );
     border-radius: 16px;
     padding: 0;
     color: white;
@@ -66,7 +66,7 @@
 }
 
 .modal_header {
-    background: linear-gradient(135deg, #5865F2 0%, #7289DA 100%);
+    background: linear-gradient( 135deg, rgba(143, 6, 222, 0.8) 0%, rgba(56, 0, 139, 0.3) 50%, rgba(42, 0, 84, 0.8) 100% );
     padding: 1.5rem 2rem;
     font-size: 1.4rem;
     font-weight: 600;
@@ -91,7 +91,7 @@
 
 .modal_body input {
     width: 100%;
-    background: linear-gradient(135deg, #202225 0%, #2C2F36 100%);
+    background: linear-gradient( 135deg, rgba(42, 0, 84, 0.8) 0%, rgba(97, 34, 190, 0.3) 50%, rgba(190, 79, 255, 0.8) 100% );
     border: 2px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
     padding: 1rem 1.2rem;
@@ -224,7 +224,7 @@
 }
 
 .invite_card_body {
-    background: linear-gradient(135deg, #202225 0%, #2C2F36 100%);
+    background: linear-gradient( 145deg, rgba(143, 6, 222, 0.8) 0%, rgba(56, 0, 139, 0.3) 50%, rgba(42, 0, 84, 0.8) 100% ) !important;
     border-radius: 12px;
     padding: 1.2rem;
     display: flex;
@@ -245,7 +245,7 @@
 }
 
 .invite_card_copy {
-    background: linear-gradient(135deg, #5865F2 0%, #7289DA 100%);
+    background: linear-gradient( 145deg, rgba(143, 6, 222, 0.8) 0%, rgba(56, 0, 139, 0.3) 50%, rgba(42, 0, 84, 0.8) 100% );
     border: none;
     border-radius: 8px;
     padding: 0.6rem 1.2rem;
@@ -357,11 +357,11 @@
 #create_button {
     border: none;
     color: white;
-    background-color: blue;
+    background: linear-gradient( 145deg, rgba(189, 75, 255, 0.8) 0%, rgba(73, 0, 182, 0.3) 50%, rgba(42, 0, 84, 0.8) 100% );
     padding: .3rem;
     border-radius: 3px;
 }
 
 #create_button:hover {
-    background-color: rgb(71, 71, 243);
+    background-color: rgb(174, 174, 174);
 }

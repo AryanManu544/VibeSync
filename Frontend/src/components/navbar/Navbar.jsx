@@ -45,7 +45,7 @@ const showAlert = (message, type) => {
     setnew_server_image_preview(server_input)
   };
   const handleShow = () => setShow(true);
-  const template = [{text:'Create My Own' , image:server_img_1}, {text:'Gaming' , image:server_img_2}, {text:'School Club' , image:server_img_3}, {text:'Study Group' , image:server_img_4}, {text:'Friends' , image:server_img_5} , {text:'Artists & Creators' , image:server_img_6}, {text:'Local Community' , image:server_img_7}]
+  const template = [{text:'Create My Own' , image:server_img_1}]
   const [server_details, setserver_details] = useState({name:`${username}'s server` , type:'' , key:0 , role:'author'})
   const [current_modal, setcurrent_modal] = useState(1)
   const [submit_button, setsubmit_button] = useState({create_button_state:false , back_button_state:false})
@@ -134,59 +134,7 @@ const showAlert = (message, type) => {
       </>
     )
   }
-
   function second_modal(){
-    return(
-      <>
-        <div className={navbarcss.modal_header}>
-          <h2 className={navbarcss.modal_title}>Tell us more about your server</h2>
-          <button className={navbarcss.modal_close} onClick={handleClose}>
-            <CloseIcon />
-          </button>
-        </div>
-        
-        <div className={navbarcss.modal_content}>
-          <p className={navbarcss.modal_subtitle}>
-            In order to help you with your setup, is your new server for just a few friends or a larger community?
-          </p>
-          
-          <div className={navbarcss.template_grid}>
-            {template.slice(template.length-2, template.length).map((elem, index) => (
-              <div 
-                key={index} 
-                className={navbarcss.template_card}
-                onClick={() => setcurrent_modal(3)}
-              >
-                <div className={navbarcss.template_icon}>
-                  <img src={elem.image} alt="" />
-                </div>
-                <span className={navbarcss.template_text}>{elem.text}</span>
-                <ChevronRightIcon className={navbarcss.template_arrow} />
-              </div>
-            ))}
-          </div>
-          
-          <div className={navbarcss.skip_section}>
-            <p>
-              Not sure? You can 
-              <button className={navbarcss.skip_link} onClick={() => setcurrent_modal(3)}>
-                skip this question
-              </button> 
-              for now
-            </p>
-          </div>
-          
-          <div className={navbarcss.modal_footer}>
-            <button className={navbarcss.back_btn} onClick={() => setcurrent_modal(1)}>
-              Back
-            </button>
-          </div>
-        </div>
-      </>
-    )
-  }
-
-  function third_modal(){
     return(
       <>
         <div className={navbarcss.modal_header}>
@@ -233,7 +181,7 @@ const showAlert = (message, type) => {
             <button 
               className={navbarcss.back_btn} 
               disabled={submit_button.back_button_state}  
-              onClick={() => setcurrent_modal(2)}
+              onClick={() => setcurrent_modal(1)}
             > 
               Back
             </button>
@@ -325,7 +273,6 @@ const showAlert = (message, type) => {
             <div className={navbarcss.modal_container} onClick={(e) => e.stopPropagation()}>
               {current_modal === 1 && first_modal()}
               {current_modal === 2 && second_modal()}
-              {current_modal === 3 && third_modal()}
             </div>
           </div>
         )}

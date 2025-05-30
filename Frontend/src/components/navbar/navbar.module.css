@@ -190,7 +190,12 @@
 }
 
 .modal_container {
-  background: linear-gradient(145deg, #2f3136, #36393f);
+  background: linear-gradient(
+    145deg,
+    rgba(143, 6, 222, 0.8) 0%,
+    rgba(56, 0, 139, 0.3) 50%,
+    rgba(42, 0, 84, 0.8) 100%
+  );
   border-radius: 20px;
   box-shadow: 
     0 25px 50px rgba(0, 0, 0, 0.7),
@@ -221,6 +226,12 @@
   justify-content: space-between;
   padding: 24px 28px 0;
   margin-bottom: 16px;
+  background: linear-gradient(
+    135deg,
+    rgba(143, 6, 222, 0.8) 0%,
+    rgba(56, 0, 139, 0.3) 50%,
+    rgba(42, 0, 84, 0.8) 100%
+  );
 }
 
 .modal_title {
@@ -258,6 +269,12 @@
   padding: 0 28px 28px;
   overflow-y: auto;
   max-height: calc(90vh - 100px);
+  background: linear-gradient(
+    180deg,
+    rgba(42, 0, 84, 0.8) 0%,
+    rgba(97, 34, 190, 0.3) 50%,
+    rgba(190, 79, 255, 0.8)  100%
+  );
 }
 
 .modal_content::-webkit-scrollbar {
@@ -292,7 +309,11 @@
   display: flex;
   align-items: center;
   padding: 16px 20px;
-  background: rgba(255, 255, 255, 0.05);
+  background: linear-gradient(
+    135deg,
+    rgba(131, 6, 255, 0.8) 0%,
+    rgba(79, 0, 131, 0.9) 100%
+  );
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   cursor: pointer;
@@ -628,13 +649,6 @@
     width: 100%;
     justify-content: center;
   }
-}
-
-/* Dark theme enhancements */
-.modal_container {
-  background: 
-    linear-gradient(145deg, #2f3136, #36393f),
-    radial-gradient(circle at 50% 0%, rgba(88, 101, 242, 0.1), transparent 50%);
 }
 
 /* Glassmorphism effect for template cards */
