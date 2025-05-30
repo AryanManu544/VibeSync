@@ -3,7 +3,6 @@ import navbarcss from '../navbar/navbar.module.css'
 import vibesync_logo from '../../images/vibesync_logo.png'
 import vibesync_logo_2 from '../../images/vibesync_logo_2.png'
 import AddIcon from '@mui/icons-material/Add';
-import Modal from 'react-bootstrap/Modal';
 import CloseIcon from '@mui/icons-material/Close';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import server_img_1 from '../../images/new_server.svg' 
@@ -101,38 +100,35 @@ const showAlert = (message, type) => {
   function first_modal(){
     return(
       <>
-        <div className={navbarcss.server_close_button}>
-            <CloseIcon htmlColor='#A7ABB0' onClick={handleClose} fontSize='large'></CloseIcon>
+        <div className={navbarcss.modal_header}>
+          <h2 className={navbarcss.modal_title}>Create a server</h2>
+          <button className={navbarcss.modal_close} onClick={handleClose}>
+            <CloseIcon />
+          </button>
         </div>
-        <div id={navbarcss.new_server}>
-          <div id={navbarcss.server_heading} className={navbarcss.components}> Create a server</div>
-          <div id={navbarcss.server_sub_heading} className={navbarcss.components}> 
-              Your server is where you and your friends hang out.
-              Make yours and start talking.
-          </div>
+        
+        <div className={navbarcss.modal_content}>
+          <p className={navbarcss.modal_subtitle}>
+            Your server is where you and your friends hang out. Make yours and start talking.
+          </p>
           
-          <div id={navbarcss.server_template_wrap}>
-          {
-            template.map((elem,index)=>{
-              return(
-                <div>
-                <div key={index} className={navbarcss.server_template} onClick={()=>{
-                  setserver_details({...server_details , type:elem.text , key:index+1})
-                  setcurrent_modal(2)}
-                  }>
-                  <div id={navbarcss.server_template_item_1}>
-                    <img src={elem.image} alt="" />
-                    {elem.text}
-                  </div>
-                  <div id={navbarcss.server_template_item_2}>
-                    <ChevronRightIcon fontSize='large'></ChevronRightIcon>
-                  </div>
-                  
+          <div className={navbarcss.template_grid}>
+            {template.map((elem, index) => (
+              <div 
+                key={index} 
+                className={navbarcss.template_card}
+                onClick={() => {
+                  setserver_details({...server_details, type: elem.text, key: index + 1})
+                  setcurrent_modal(2)
+                }}
+              >
+                <div className={navbarcss.template_icon}>
+                  <img src={elem.image} alt="" />
                 </div>
+                <span className={navbarcss.template_text}>{elem.text}</span>
+                <ChevronRightIcon className={navbarcss.template_arrow} />
               </div>
-              )
-            })
-          }
+            ))}
           </div>
         </div>
       </>
@@ -142,113 +138,127 @@ const showAlert = (message, type) => {
   function second_modal(){
     return(
       <>
-       <div className={navbarcss.server_close_button}>
-            <CloseIcon htmlColor='#A7ABB0' onClick={()=>
-              {
-                handleClose()
-                setcurrent_modal(1)
-              }} 
-                fontSize='large'>
-              
-            </CloseIcon>
+        <div className={navbarcss.modal_header}>
+          <h2 className={navbarcss.modal_title}>Tell us more about your server</h2>
+          <button className={navbarcss.modal_close} onClick={handleClose}>
+            <CloseIcon />
+          </button>
         </div>
-        <div id={navbarcss.new_server}>
-          <div id={navbarcss.server_heading} className={navbarcss.components}>Tell us more about your server</div>
-          <div id={navbarcss.server_sub_heading} className={navbarcss.components}> 
-              In order to help you with your setup, is your new server for just a few friends or a larger community?
+        
+        <div className={navbarcss.modal_content}>
+          <p className={navbarcss.modal_subtitle}>
+            In order to help you with your setup, is your new server for just a few friends or a larger community?
+          </p>
+          
+          <div className={navbarcss.template_grid}>
+            {template.slice(template.length-2, template.length).map((elem, index) => (
+              <div 
+                key={index} 
+                className={navbarcss.template_card}
+                onClick={() => setcurrent_modal(3)}
+              >
+                <div className={navbarcss.template_icon}>
+                  <img src={elem.image} alt="" />
+                </div>
+                <span className={navbarcss.template_text}>{elem.text}</span>
+                <ChevronRightIcon className={navbarcss.template_arrow} />
+              </div>
+            ))}
           </div>
           
-          <div id={navbarcss.server_template_wrap}>
-          {
-            template.slice(template.length-2,template.length).map((elem,index)=>{
-              return(
-                <div>
-                <div key={index} className={navbarcss.server_template} onClick={()=>{setcurrent_modal(3)}}>
-                  <div id={navbarcss.server_template_item_1}>
-                    <img src={elem.image} alt="" />
-                    {elem.text}
-                  </div>
-                  <div id={navbarcss.server_template_item_2}>
-                    <ChevronRightIcon fontSize='large'></ChevronRightIcon>
-                  </div>
-                  
-                </div>
-              </div>
-              )
-            })
-          }
+          <div className={navbarcss.skip_section}>
+            <p>
+              Not sure? You can 
+              <button className={navbarcss.skip_link} onClick={() => setcurrent_modal(3)}>
+                skip this question
+              </button> 
+              for now
+            </p>
           </div>
-          <div className={navbarcss.question}>
-            Not sure? You can 
-            <div className={navbarcss.question_link} onClick={()=>{setcurrent_modal(3)}}>
-              skip this question 
-            </div>
-            for now
-          </div>
-          <div className={navbarcss.back_button_wrap} >
-            <div className={navbarcss.back_button} onClick={()=>{setcurrent_modal(1)}}> 
+          
+          <div className={navbarcss.modal_footer}>
+            <button className={navbarcss.back_btn} onClick={() => setcurrent_modal(1)}>
               Back
-            </div>
+            </button>
           </div>
         </div>
       </>
-      
     )
   }
 
   function third_modal(){
     return(
       <>
-       <div className={navbarcss.server_close_button}>
-            <CloseIcon htmlColor='#A7ABB0' onClick={()=>
-              {
-                handleClose()
-                setcurrent_modal(1)
-              }} 
-                fontSize='large'>
-              
-            </CloseIcon>
+        <div className={navbarcss.modal_header}>
+          <h2 className={navbarcss.modal_title}>Customize your server</h2>
+          <button className={navbarcss.modal_close} onClick={handleClose}>
+            <CloseIcon />
+          </button>
         </div>
-        <div id={navbarcss.new_server}>
-          <div id={navbarcss.server_heading} className={navbarcss.components}>Customize your server</div>
-          <div id={navbarcss.server_sub_heading} className={navbarcss.components}> 
+        
+        <div className={navbarcss.modal_content}>
+          <p className={navbarcss.modal_subtitle}>
             Give your new server a personality with a name and an icon. You can always change it later.
-          </div>
-          <div className={navbarcss.input_field_wrap}>
-            <label className={navbarcss.input_field} htmlFor='update_cover_pic'><img src={new_server_image_preview} alt="" /></label>
-            <input onChange={update_server_pic} type="file" id='update_cover_pic' name="image" hidden/>
+          </p>
+          
+          <div className={navbarcss.image_upload_section}>
+            <label className={navbarcss.image_upload} htmlFor="update_cover_pic">
+              <img src={new_server_image_preview} alt="Server icon" />
+              <div className={navbarcss.upload_overlay}>
+                <span>Change Icon</span>
+              </div>
+            </label>
+            <input 
+              onChange={update_server_pic} 
+              type="file" 
+              id="update_cover_pic" 
+              name="image" 
+              accept="image/*"
+              hidden
+            />
           </div>
 
-          <div className={navbarcss.server_details}>
-            <div id={navbarcss.server_name_heading}>SERVER NAME</div>
-            <div id={navbarcss.server_details}> <input onChange={(e)=>{setserver_details({...server_details , name:e.target.value})}} value={server_details.name} id={navbarcss.server_name_input} type="text" /> </div>
+          <div className={navbarcss.input_section}>
+            <label className={navbarcss.input_label}>SERVER NAME</label>
+            <input 
+              onChange={(e) => setserver_details({...server_details, name: e.target.value})} 
+              value={server_details.name} 
+              className={navbarcss.server_name_input} 
+              type="text" 
+              placeholder="Enter server name"
+            />
           </div>
 
-          <div className={navbarcss.buttons_wrap} >
-            <button className={navbarcss.back_button} disabled={submit_button.back_button_state}  onClick={()=>{setcurrent_modal(2)}}> 
+          <div className={navbarcss.modal_footer}>
+            <button 
+              className={navbarcss.back_btn} 
+              disabled={submit_button.back_button_state}  
+              onClick={() => setcurrent_modal(2)}
+            > 
               Back
             </button>
-            <Button className={navbarcss.create_button} variant="contained" onClick={()=>{create_server(); setsubmit_button({create_button_state:true , back_button_state:true})}}>
-              {
-                submit_button.create_button_state==false?
-                <>Create</>
-                
-                :
+            <button
+              className={`${navbarcss.create_btn} ${submit_button.create_button_state ? navbarcss.loading : ''}`}
+              onClick={() => {
+                create_server(); 
+                setsubmit_button({create_button_state: true, back_button_state: true})
+              }}
+              disabled={submit_button.create_button_state}
+            >
+              {submit_button.create_button_state ? (
                 <>
-                   <CircularProgress size='1.5rem' color='inherit' /> 
+                  <CircularProgress size="1rem" color="inherit" />
+                  <span>Creating...</span>
                 </>
-              }
-
-            </Button>
-
+              ) : (
+                'Create'
+              )}
+            </button>
           </div>
-          
         </div>
       </>
-      
     )
   }
-
 
   return (
     <div className={navbarcss.main}>
@@ -274,6 +284,7 @@ const showAlert = (message, type) => {
           servers.map((elem,key)=>{
             return(
               <OverlayTrigger
+                  key={key}
                   placement="right"
                   overlay={<Tooltip id={navbarcss.button_tooltip_2}>{elem.server_name}</Tooltip>}>
                      <Link to={`/channels/${elem.server_id}`} onClick={()=>{dispatch(server_role(elem.server_role))}} className={`${navbarcss.list_items} ${navbarcss.servers}`}>
@@ -308,27 +319,16 @@ const showAlert = (message, type) => {
             <div className={`${navbarcss.right}`}></div>
         </div> 
         
-          <Modal id={navbarcss.new_server_wrap} show={show} onHide={handleClose} centered>
-            {
-              current_modal==1?
-              <>
-                {first_modal()}
-              </>
-              :
-              <>
-              {
-                current_modal==2?
-                <>
-                  {second_modal()}
-                </>:
-                <>
-                  {third_modal()}
-                </>
-              }
-                
-              </>
-            }
-        </Modal>      
+        {/* Custom Modal */}
+        {show && (
+          <div className={navbarcss.modal_overlay} onClick={handleClose}>
+            <div className={navbarcss.modal_container} onClick={(e) => e.stopPropagation()}>
+              {current_modal === 1 && first_modal()}
+              {current_modal === 2 && second_modal()}
+              {current_modal === 3 && third_modal()}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

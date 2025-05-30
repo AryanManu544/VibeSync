@@ -43,8 +43,6 @@
     display: none;
   }
 
-
-
 .servers:last-child::after{
     content: '';
     width: 50%;
@@ -127,158 +125,12 @@
     /* i had to specify border radius to be 0 here because otherwise it inherits border radius from its class i.e .middle img */
 }
 
-#new_server_wrap{
-    position: relative;
-    max-width: 450px;
-}
-
-.server_close_button{
-    position: absolute;
-    right: 0px;
-    margin-top: .5rem;
-    margin-right: 1rem;
-    cursor: pointer;
-}
-
-#new_server{
-    max-height: 550px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    transition: scaleX(1) 1s ease-in;
-}
-
-#server_heading{
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin-top: 1.5rem;
-}
-
-#server_sub_heading{
-    width: 85%;
-    text-align: center;
-    color: #909396;
-    margin-bottom: 1.5rem;
-}
-
-#server_template_wrap{
-    width: 95%;
-    overflow-y: scroll;
-}
-
-#server_template_wrap::-webkit-scrollbar {
-    width: 0px;
-  }
-
-
-.server_template{
-    width: 100%;
-    display: flex;
-    border-radius: 10px;
-    justify-content: space-between;
-    align-items: center;
-    font-weight: 700;
-    border: 1px solid #d1d4d8;
-    padding: .4rem;
-    margin-bottom: 1rem;
-}
-
-
-.server_template:hover{
-    background-color: #e5eaec;
-    cursor: pointer;
-}
-
-#server_template_item_1{
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.back_button_wrap{
-    width: 100%;
-    display: flex;
-    justify-content: flex-start;
-    margin: 2rem 0rem 1rem 2rem;
-}
-
-.back_button{
-    width: fit-content;
-    cursor: pointer;
-    border: none;
-    background-color: white;
-}
-
-.question{
-    display: flex;
-    gap: .2rem;
-    font-size: .8rem;
-}
-
-.question_link{
-    color: blue;
-    cursor: pointer;
-}
-
-.input_field{
-    cursor: pointer;
-    margin-bottom: 2rem;
-}
-
-
-.input_field img{
-    width: 10rem;
-    clip-path: circle();
-    object-fit: cover;
-    height: 100%;
-}
-
-
-.server_details{
-    width: 90%;
-    margin-bottom: 1rem;
-}
-
-#server_name_heading{
-    font-size: .8rem;
-    font-weight: 650;
-    color: #4F5660;
-    margin-bottom: .5rem;
-}
-
-
-#server_name input{
-    height: 2.5rem;
-    background-color: #E3E5E8;
-    border: none;
-    text-indent: 1rem;
-}
-
-#server_name input:focus{
-    outline: none;
-}
-
-#server_name_input{
-    width: 100%;
-}
-
-.buttons_wrap{
-    display: flex;
-    justify-content: space-between;
-    width: 90%;
-    margin-bottom: 1rem;
-}
-
-.create_button{
-    background-color: #000000;
-}
-
 .icons{
     cursor: pointer;
     padding: 3px;
     color:#B9BBBE
 }
-/* Target the “Home” button’s middle cell */
+/* Target the "Home" button's middle cell */
 #direct_message {
   /* 1: size it to a square */
   width: 48px;      /* same as your .list_items height */
@@ -308,5 +160,514 @@
   width: 100%;
   height: 100%;
   object-fit: cover;      /* crop/scale so it fills the parent */
-  border-radius: 50%;     /* ensure it’s clipped to the circle */
+  border-radius: 50%;     /* ensure it's clipped to the circle */
+}
+
+/* ===== CUSTOM MODAL STYLES ===== */
+
+.modal_overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal_container {
+  background: linear-gradient(145deg, #2f3136, #36393f);
+  border-radius: 20px;
+  box-shadow: 
+    0 25px 50px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(255, 255, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow: hidden;
+  animation: slideUp 0.3s ease-out;
+  position: relative;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal_header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 28px 0;
+  margin-bottom: 16px;
+}
+
+.modal_title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+  background: linear-gradient(135deg, #ffffff, #b9bbbe);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.modal_close {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #b9bbbe;
+}
+
+.modal_close:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  transform: scale(1.1);
+}
+
+.modal_content {
+  padding: 0 28px 28px;
+  overflow-y: auto;
+  max-height: calc(90vh - 100px);
+}
+
+.modal_content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal_content::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.modal_content::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+}
+
+.modal_subtitle {
+  color: #b9bbbe;
+  text-align: center;
+  margin: 0 0 24px;
+  line-height: 1.5;
+  font-size: 16px;
+}
+
+.template_grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.template_card {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.template_card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: left 0.5s ease;
+}
+
+.template_card:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(88, 101, 242, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(88, 101, 242, 0.2);
+}
+
+.template_card:hover::before {
+  left: 100%;
+}
+
+.template_icon {
+  width: 48px;
+  height: 48px;
+  margin-right: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+.template_card:hover .template_icon {
+  background: rgba(88, 101, 242, 0.2);
+  transform: scale(1.1);
+}
+
+.template_icon img {
+  width: 28px;
+  height: 28px;
+  filter: brightness(1.2);
+}
+
+.template_text {
+  flex: 1;
+  font-weight: 600;
+  color: #ffffff;
+  font-size: 16px;
+}
+
+.template_arrow {
+  color: #b9bbbe;
+  transition: all 0.3s ease;
+}
+
+.template_card:hover .template_arrow {
+  color: #5865f2;
+  transform: translateX(4px);
+}
+
+.skip_section {
+  text-align: center;
+  margin: 24px 0;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.skip_section p {
+  color: #b9bbbe;
+  margin: 0;
+  font-size: 14px;
+}
+
+.skip_link {
+  background: none;
+  border: none;
+  color: #5865f2;
+  cursor: pointer;
+  text-decoration: underline;
+  font-size: 14px;
+  transition: color 0.2s ease;
+}
+
+.skip_link:hover {
+  color: #4752c4;
+}
+
+.image_upload_section {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 32px;
+}
+
+.image_upload {
+  position: relative;
+  cursor: pointer;
+  display: block;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+}
+
+.image_upload:hover {
+  transform: scale(1.05);
+  border-color: rgba(88, 101, 242, 0.5);
+  box-shadow: 0 0 20px rgba(88, 101, 242, 0.3);
+}
+
+.image_upload img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: all 0.3s ease;
+}
+
+.upload_overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.image_upload:hover .upload_overlay {
+  opacity: 1;
+}
+
+.image_upload:hover img {
+  filter: blur(2px);
+}
+
+.input_section {
+  margin-bottom: 32px;
+}
+
+.input_label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: #b9bbbe;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.server_name_input {
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+.server_name_input:focus {
+  outline: none;
+  border-color: #5865f2;
+  box-shadow: 0 0 0 3px rgba(88, 101, 242, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.server_name_input::placeholder {
+  color: #72767d;
+}
+
+.modal_footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 32px;
+  gap: 16px;
+}
+
+.back_btn {
+  padding: 12px 24px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #ffffff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 14px;
+}
+
+.back_btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-1px);
+}
+
+.back_btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.create_btn {
+  padding: 12px 32px;
+  background: linear-gradient(135deg, #5865f2, #4752c4);
+  border: none;
+  border-radius: 8px;
+  color: #ffffff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 15px rgba(88, 101, 242, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.create_btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.create_btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #4752c4, #3c45a3);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(88, 101, 242, 0.4);
+}
+
+.create_btn:hover:not(:disabled)::before {
+  left: 100%;
+}
+
+.create_btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.create_btn.loading {
+  background: linear-gradient(135deg, #4752c4, #3c45a3);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 4px 15px rgba(88, 101, 242, 0.3);
+  }
+  50% {
+    box-shadow: 0 4px 25px rgba(88, 101, 242, 0.5);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .modal_container {
+    width: 95%;
+    margin: 20px;
+    border-radius: 16px;
+  }
+  
+  .modal_header {
+    padding: 20px 20px 0;
+  }
+  
+  .modal_content {
+    padding: 0 20px 20px;
+  }
+  
+  .modal_title {
+    font-size: 20px;
+  }
+  
+  .template_card {
+    padding: 14px 16px;
+  }
+  
+  .template_icon {
+    width: 40px;
+    height: 40px;
+    margin-right: 12px;
+  }
+  
+  .template_icon img {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .template_text {
+    font-size: 14px;
+  }
+  
+  .image_upload {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .modal_footer {
+    flex-direction: column-reverse;
+    gap: 12px;
+  }
+  
+  .back_btn,
+  .create_btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Dark theme enhancements */
+.modal_container {
+  background: 
+    linear-gradient(145deg, #2f3136, #36393f),
+    radial-gradient(circle at 50% 0%, rgba(88, 101, 242, 0.1), transparent 50%);
+}
+
+/* Glassmorphism effect for template cards */
+.template_card {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Enhanced focus states for accessibility */
+.template_card:focus,
+.back_btn:focus,
+.create_btn:focus,
+.server_name_input:focus,
+.image_upload:focus {
+  outline: 2px solid #5865f2;
+  outline-offset: 2px;
+}
+
+/* Smooth transitions for all interactive elements */
+* {
+  transition: all 0.2s ease;
+}
+
+/* Additional hover effects */
+.modal_close:active {
+  transform: scale(0.95);
+}
+
+.back_btn:active,
+.create_btn:active {
+  transform: translateY(0);
+}
+
+.template_card:active {
+  transform: translateY(0) scale(0.98);
 }

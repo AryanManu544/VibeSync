@@ -4,14 +4,39 @@ const Chat     = require('../models/Chat');
 const User     = require('../models/User');
 
 exports.createServer = async (req, res) => {
+  console.log('📥 createServer - Request body:', req.body);
+  console.log('📥 createServer - File info:', req.file ? 'File present' : 'No file');
+  console.log('📥 createServer - Cloudinary URL:', req.cloudinaryUrl);
+  console.log('📥 createServer - User ID:', req.userId);
+
   const { server_details: rawDetails } = req.body;
   const userId = req.userId;   
   const cloudinaryUrl = req.cloudinaryUrl; 
 
+  // Validate userId exists
+  if (!userId) {
+    console.error('❌ No userId found in request');
+    return res.status(401).json({ 
+      status: 401, 
+      message: 'Unauthorized - No user ID' 
+    });
+  }
+
+  // Validate server_details exists
+  if (!rawDetails) {
+    console.error('❌ No server_details in request body');
+    return res.status(400).json({ 
+      status: 400, 
+      message: 'Missing server_details in request body' 
+    });
+  }
+
   let details;
   try {
     details = JSON.parse(rawDetails);
+    console.log('✅ Parsed server details:', details);
   } catch (err) {
+    console.error('❌ JSON parse error:', err.message);
     return res.status(400).json({ 
       status: 400, 
       message: 'Invalid JSON in server_details' 
@@ -20,30 +45,36 @@ exports.createServer = async (req, res) => {
   
   const { name, type, key, role } = details;
   if (!name || !type || !key || !role) {
+    console.error('❌ Missing required fields:', { name, type, key, role });
     return res.status(400).json({ 
       status: 400, 
-      message: 'Missing required server fields' 
+      message: 'Missing required server fields: name, type, key, role' 
     });
   }
 
   let userData;
   try {
+    console.log('🔍 Looking for user with ID:', userId);
     userData = await User.findById(userId);
     if (!userData) {
+      console.error('❌ User not found with ID:', userId);
       return res.status(404).json({ 
         status: 404, 
         message: 'User not found' 
       });
     }
+    console.log('✅ User found:', userData.username);
   } catch (err) {
-    console.error('Error fetching user in createServer:', err);
+    console.error('❌ Error fetching user in createServer:', err);
     return res.status(500).json({ 
       status: 500, 
-      message: 'Server error' 
+      message: 'Database error while fetching user' 
     });
   }
 
   try {
+    console.log('🏗️ Creating server document...');
+    
     const serverDoc = new Server({
       server_name: name,
       server_pic: cloudinaryUrl || userData.profile_pic || '', // Use Cloudinary URL
@@ -59,12 +90,18 @@ exports.createServer = async (req, res) => {
       categories: [],
       active: true
     });
+    
+    console.log('💾 Saving server document...');
     await serverDoc.save();
+    console.log('✅ Server saved with ID:', serverDoc._id);
 
+    console.log('💬 Creating chat document...');
     const chatDoc = new Chat({ server_id: serverDoc._id });
     await chatDoc.save();
+    console.log('✅ Chat document saved');
 
-    await User.updateOne(
+    console.log('👤 Updating user document...');
+    const updateResult = await User.updateOne(
       { _id: userId },
       {
         $push: {
@@ -77,18 +114,26 @@ exports.createServer = async (req, res) => {
         }
       }
     );
+    console.log('✅ User updated, modified count:', updateResult.modifiedCount);
 
+    console.log('🎉 Server creation successful');
     return res.status(201).json({
       status: 201,
-      message: 'Server created',
+      message: 'Server created successfully',
       server_id: serverDoc._id.toString(),
       server_pic: serverDoc.server_pic
     });
   } catch (err) {
-    console.error('❌ createServer error:', err);
+    console.error('❌ createServer database error:', err);
+    console.error('❌ Error details:', {
+      name: err.name,
+      message: err.message,
+      stack: err.stack
+    });
     return res.status(500).json({ 
       status: 500, 
-      message: 'Internal server error' 
+      message: 'Internal server error during server creation',
+      error: process.env.NODE_ENV === 'development' ? err.message : undefined
     });
   }
 };
@@ -186,6 +231,7 @@ exports.addChannel = async (req, res) => {
     return res.status(500).json({ message: 'Internal server error' });
   }
 };
+
 exports.leaveServer = async (req, res) => {
   const { server_id } = req.body;
   const userId = req.userId;
