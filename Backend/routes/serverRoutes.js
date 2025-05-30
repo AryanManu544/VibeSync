@@ -2,7 +2,16 @@ const express = require('express');
 const multer = require('multer');
 const auth = require('../middleware/auth');
 const ctrl = require('../controllers/serverController');
-const cloudinary = require('../config/cloudinary');
+
+// Import cloudinary with error handling
+let cloudinary;
+try {
+  const cloudinaryConfig = require('../config/cloudinary');
+  cloudinary = cloudinaryConfig.cloudinary; // Extract cloudinary from the exported object
+  console.log('✅ Cloudinary config loaded successfully');
+} catch (error) {
+  console.error('❌ Failed to load Cloudinary config:', error.message);
+}
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -24,8 +33,19 @@ const router = express.Router();
 const uploadToCloudinary = async (req, res, next) => {
   try {
     console.log('🖼️ Cloudinary middleware - File present:', req.file ? 'Yes' : 'No');
+    console.log('🔧 Cloudinary config check:', cloudinary ? 'Available' : 'NOT AVAILABLE');
     
     if (req.file) {
+      // Check if cloudinary is available
+      if (!cloudinary || !cloudinary.uploader) {
+        console.error('❌ Cloudinary not properly configured');
+        return res.status(500).json({ 
+          status: 500,
+          message: 'Image upload service not available',
+          error: process.env.NODE_ENV === 'development' ? 'Cloudinary not configured' : undefined
+        });
+      }
+      
       console.log('📤 Uploading to Cloudinary...');
       console.log('📊 File details:', {
         originalname: req.file.originalname,
@@ -72,7 +92,6 @@ const uploadToCloudinary = async (req, res, next) => {
   }
 };
 
-// Error handling middleware for multer
 const handleMulterError = (error, req, res, next) => {
   console.error('❌ Multer error:', error);
   
@@ -99,7 +118,6 @@ const handleMulterError = (error, req, res, next) => {
   next(error);
 };
 
-// Routes
 router.post(
   '/create_server',
   auth,
