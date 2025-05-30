@@ -160,7 +160,7 @@ const Login = ({ showAlert }) => {
             />
           </div>
 
-          <div className="remember-forgot">
+         {/*<div className="remember-forgot">
             <div>
               <input
                 type="checkbox"
@@ -173,7 +173,7 @@ const Login = ({ showAlert }) => {
               <label htmlFor="remember">Remember Me</label>
             </div>
             <Link to="/forgotpassword">Forgot Password?</Link>
-          </div>
+          </div>*/}
 
           <button type="submit" disabled={isLoading}>
             {isLoading ? "Logging in..." : "Log In"}
