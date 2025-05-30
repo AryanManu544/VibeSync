@@ -28,7 +28,6 @@ function Invite() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-auth-token': token,
         },
         body: JSON.stringify({ invite_link }),
       });
