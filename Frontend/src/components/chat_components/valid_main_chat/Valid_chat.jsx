@@ -8,7 +8,6 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CloseIcon from '@mui/icons-material/Close';
 import socket from '../../Socket/Socket';
-// import logo from '../../../images/discord_logo_3.png'; // Unused
 import { useParams } from 'react-router-dom';
 
 const EMOJI_MAP = {
