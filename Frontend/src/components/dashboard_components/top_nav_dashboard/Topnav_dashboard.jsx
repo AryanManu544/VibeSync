@@ -80,19 +80,19 @@ function Topnav_dashboard({ button_status = {} }) {
 
       <div className={topnav_dashboardcss.right_nav_comps} id={topnav_dashboardcss.middle_part}>
         {[ 
-          { num:1, name:'ONLINE', status:false, text:"No one's around to play with Duckie." },
-          { num:2, name:'ALL FRIENDS', status:all_friends, text:'Duckie is playing with friends. You should too!' },
-          { num:3, name:'PENDING', status:pending, text:"There are no pending friend requests. Here's Duckie for now." },
-          { num:4, name:'BLOCKED', status:false, text:"You can't unblock the Duckie. You should watch him eat instead." },
-          { num:5, name:'ADD FRIENDS', status:false, text:'Duckie is playing with friends. You should too!' }
+          { num:1, name:'Online', status:false, text:"No one's around to play with Duckie." },
+          { num:2, name:'All friends', status:all_friends, text:'Duckie is playing with friends. You should too!' },
+          { num:3, name:'Pending', status:pending, text:"There are no pending friend requests. Here's Duckie for now." },
+          { num:4, name:'Blocked', status:false, text:"You can't unblock the Duckie. You should watch him eat instead." },
+          { num:5, name:'Add friends', status:false, text:'Duckie is playing with friends. You should too!' }
         ].map(({num,name,status,text}, idx) => (
           <div
             key={idx}
             className={topnav_dashboardcss.middle_part_comps}
             id={topnav_dashboardcss[`middle_part_item_${num}`]}
             onClick={() => change_option_value(num, name, status, text)}
-          >
-            {num === 2 ? 'All' : name.charAt(0)}
+          >            
+            {num === 1 ? 'Online' : name}
           </div>
         ))}
       </div>
