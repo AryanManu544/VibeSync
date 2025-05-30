@@ -70,7 +70,7 @@ const Login = ({ showAlert }) => {
         return;
       }
 
-      const token = body.accesstoken;
+      const token = body.accessToken;
       if (!token) {
         showAlert("No token received", "danger");
         setIsLoading(false);
