@@ -81,31 +81,23 @@ exports.addFriend = async (req, res) => {
 };
 
 exports.processRequest = [
-  upload.none(),
   async (req, res) => {
     try {
-      const { message, friend_data: rawFriendData } = req.body;
+      const { message, friend_data } = req.body;
 
-      if (!message || typeof rawFriendData !== 'string') {
-        return res.status(400).json({ status: 400, message: 'Missing or invalid fields' });
+      if (!message || !friend_data) {
+        return res.status(400).json({ message: 'Missing message or friend data' });
       }
 
-      let friend_data;
-      try {
-        friend_data = JSON.parse(rawFriendData);
-      } catch (err) {
-        console.error('❌ Invalid friend_data JSON:', rawFriendData);
-        return res.status(400).json({ status: 400, message: 'Malformed friend_data' });
-      }
-
+      const friend = JSON.parse(friend_data);
       const userId = req.userId;
-      const friendId = friend_data.id;
+      const friendId = friend.id;
 
       if (message === 'Accept') {
         await User.updateOne(
           { _id: userId },
           {
-            $push: { friends: friend_data },
+            $push: { friends: friend },
             $pull: { incoming_reqs: { id: friendId } }
           }
         );
@@ -116,9 +108,9 @@ exports.processRequest = [
             $push: {
               friends: {
                 id: userId,
-                username: friend_data.username,
-                profile_pic: friend_data.profile_pic,
-                tag: friend_data.tag
+                username: friend.username,
+                profile_pic: friend.profile_pic,
+                tag: friend.tag
               }
             },
             $pull: { outgoing_reqs: { id: userId } }
@@ -126,12 +118,12 @@ exports.processRequest = [
         );
 
         return res.status(200).json({ message: 'Friend added', status: 200 });
-      } else {
-        return res.status(200).json({ message: `Request ${message}`, status: 200 });
       }
+
+      return res.status(200).json({ message: `Request ${message}`, status: 200 });
     } catch (err) {
       console.error('❌ processRequest error:', err);
-      res.status(500).json({ message: 'Server error', status: 500 });
+      res.status(500).json({ message: 'Server error' });
     }
   }
 ];

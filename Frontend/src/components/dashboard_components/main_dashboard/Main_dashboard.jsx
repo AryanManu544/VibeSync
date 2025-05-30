@@ -137,6 +137,9 @@ function Main_dashboard() {
       const formData = new FormData();
       formData.append('message', message);
       formData.append('friend_data', JSON.stringify(friend_data));
+for (let [key, value] of formData.entries()) {
+  console.log(`${key}: ${value}`);
+}
 
       const res = await fetch(`${url}/process_req`, {
         method: 'POST',
