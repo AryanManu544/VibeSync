@@ -5,7 +5,7 @@ const User = require('../models/User');
 const {
   ACCESS_TOKEN_SECRET,
   REFRESH_TOKEN_SECRET,
-  ACCESS_TOKEN_LIFETIME = '15m',
+  ACCESS_TOKEN_LIFETIME = '2h',
   REFRESH_TOKEN_LIFETIME = '7d',
   NODE_ENV
 } = process.env;
