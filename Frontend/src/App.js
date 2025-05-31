@@ -8,6 +8,8 @@ import Login     from './components/auth/Login';
 import Dashboard from './components/dashboard/Dashboard';
 import Invite    from './components/Invite/Invite';
 import { Analytics } from '@vercel/analytics/react';
+import AboutPage from './components/Aboutpage';
+import TechstackPage from './components/TechStackPage';
 
 function App() {
   const [alert, setAlert] = useState({ msg: '', type: '' });
@@ -24,6 +26,8 @@ function App() {
 
       <Routes>
         <Route path="/" element={<Home showAlert={showAlert} />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/techstack" element={<TechstackPage />} />
         <Route path="/register" element={<Register showAlert={showAlert} />} />
         <Route path="/login" element={<Login showAlert={showAlert} />} />
         <Route path="/channels/:server_id" element={<Dashboard />} />

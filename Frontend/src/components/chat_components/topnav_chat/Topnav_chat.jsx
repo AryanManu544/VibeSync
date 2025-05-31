@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import topnav_chatcss from '../topnav_chat/topnav_chat.module.css';
 import TagIcon from '@mui/icons-material/Tag';
-import PushPinIcon from '@mui/icons-material/PushPin';
 import LogoutIcon from '@mui/icons-material/Logout';
 import SearchIcon from '@mui/icons-material/Search';
 import CloseIcon from '@mui/icons-material/Close';
@@ -83,7 +82,6 @@ function Topnav_chat() {
         }));
 
         setAvailableMessages(formattedMessages);
-        console.log('Messages loaded for search:', formattedMessages.length);
       } else {
         console.warn('Unexpected API response structure:', data);
         setAvailableMessages([]);
@@ -285,7 +283,6 @@ function Topnav_chat() {
         </div>
 
         <div id={topnav_chatcss.right}>
-          {renderButton('Pinned Messages', PushPinIcon)}
 
           {/* Enhanced Search Input */}
           <form onSubmit={handleSearchSubmit} className={topnav_chatcss.searchForm}>
