@@ -33,6 +33,7 @@ function App() {
         <Route path="/channels/:server_id" element={<Dashboard />} />
         <Route path="/invite/:invite_link" element={<Invite />} />
       </Routes>
+      <Analytics />
     </Router>
 
   );
