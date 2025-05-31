@@ -108,9 +108,9 @@ exports.processRequest = [
             $push: {
               friends: {
                 id: userId,
-                username: friend.username,
-                profile_pic: friend.profile_pic,
-                tag: friend.tag
+                username: currentUser.username,
+                profile_pic: currentUser.profile_pic,
+                tag: currentUser.tag
               }
             },
             $pull: { outgoing_reqs: { id: userId } }
