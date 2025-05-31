@@ -92,7 +92,7 @@ exports.processRequest = [
       const friend = JSON.parse(friend_data);
       const userId = req.userId;
       const friendId = friend.id;
-
+      const currentUser = await User.findById(userId).select('username profile_pic tag');
       if (message === 'Accept') {
         await User.updateOne(
           { _id: userId },
