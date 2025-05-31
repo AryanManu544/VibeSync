@@ -1,4 +1,5 @@
 const Chat = require('../models/Chat');
+const User = require('../models/User');
 
 exports.storeMessage = async (req, res) => {
   const {
