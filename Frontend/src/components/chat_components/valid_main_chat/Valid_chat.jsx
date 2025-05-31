@@ -418,6 +418,7 @@ function Valid_chat() {
                 <div id={valid_chat_css.message_box} key={`${elem.timestamp}-${index}`}> {/* Key using timestamp and index */}
                   <div className={valid_chat_css.message_box_comps} id={valid_chat_css.message_left}>
                     <div className={valid_chat_css.user_image_wrap}>
+                      {console.log("[render] elem.sender_pic =", elem.sender_pic)}
                       <img id={valid_chat_css.user_image} src={elem.sender_pic} alt="" />
                     </div>
                   </div>

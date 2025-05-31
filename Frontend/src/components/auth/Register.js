@@ -79,7 +79,7 @@ const Register = ({ mode, showAlert }) => {
       if (res.status === 409) {
         // Duplicate email error from server
         showAlert(json.message || "Email already in use", "danger");
-      } else if (json.accesstoken) {
+      } else if (json.accessToken) {
         // Successful registration
         showAlert("Account created successfully", "success");
         navigate("/login");

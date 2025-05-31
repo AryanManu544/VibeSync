@@ -1,104 +1,152 @@
 const Chat = require('../models/Chat');
 
 exports.storeMessage = async (req, res) => {
-  const { message, server_id, channel_id, channel_name, timestamp, username, tag, id, profile_pic } = req.body;
+  const {
+    message,
+    server_id,
+    channel_id,
+    channel_name,
+    timestamp,
+    username,
+    tag,
+    id,
+  } = req.body;
 
-  try { 
+  try {
+    const actualUser = await User.findById(id).select('profile_pic');
+    const avatarToStore = (actualUser && actualUser.profile_pic)
+      ? actualUser.profile_pic
+      : process.env.DEFAULT_PROFILE_PIC;  
+
     const existing = await Chat.find({ server_id, 'channels.channel_id': channel_id });
 
     if (existing.length === 0) {
-      await Chat.updateOne( 
+      await Chat.updateOne(
         { server_id },
         {
           $push: {
-            channels: [{
-              channel_id,
-              channel_name,
-              chat_details: [{
-                content: message,
-                sender_id: id,
-                sender_name: username,
-                sender_pic: profile_pic,
-                sender_tag: tag,
-                timestamp
-              }]
-            }]
+            channels: [
+              {
+                channel_id,
+                channel_name,
+                chat_details: [
+                  {
+                    content: message,
+                    sender_id: id,
+                    sender_name: username,
+                    sender_pic: avatarToStore,
+                    sender_tag: tag,
+                    timestamp: timestamp.toString()
+                  }
+                ]
+              }
+            ]
           }
-        }
+        },
+        { upsert: true } 
       );
     } else {
-      await Chat.updateOne( 
-        { 'channels.channel_id': channel_id },
+      await Chat.updateOne(
+        { 'channels.channel_id': channel_id, server_id },
         {
           $push: {
             'channels.$.chat_details': {
               content: message,
               sender_id: id,
               sender_name: username,
-              sender_pic: profile_pic,
+              sender_pic: avatarToStore,
               sender_tag: tag,
-              timestamp
+              timestamp: timestamp.toString()
             }
           }
         }
       );
     }
-    return res.status(200).json({ status: 200, message: 'Message stored successfully' }); 
+
+    return res.status(200).json({ status: 200, message: 'Message stored successfully' });
   } catch (err) {
     console.error('Error storing message:', err);
-    return res.status(500).json({ status: 500, message: 'Server error while storing message' });
+    return res.status(500).json({
+      status: 500,
+      message: 'Server error while storing message'
+    });
   }
 };
 
 
-exports.storeImageMessage = async (req, res) => { 
-  const { image, server_id, channel_id, channel_name, timestamp, username, tag, id, profile_pic } = req.body;
+exports.storeImageMessage = async (req, res) => {
+  const {
+    image, 
+    server_id,
+    channel_id,
+    channel_name,
+    timestamp,
+    username,
+    tag,
+    id,         
+  } = req.body;
+
   try {
+    const actualUser = await User.findById(id).select('profile_pic');
+    const avatarToStore = (actualUser && actualUser.profile_pic)
+      ? actualUser.profile_pic
+      : process.env.DEFAULT_PROFILE_PIC;
+
     const existing = await Chat.find({ server_id, 'channels.channel_id': channel_id });
     if (existing.length === 0) {
       await Chat.updateOne(
         { server_id },
         {
           $push: {
-            channels: [{
-              channel_id,
-              channel_name,
-              chat_details: [{
-                image: image, 
-                sender_id: id,
-                sender_name: username,
-                sender_pic: profile_pic,
-                sender_tag: tag,
-                timestamp
-              }]
-            }]
+            channels: [
+              {
+                channel_id,
+                channel_name,
+                chat_details: [
+                  {
+                    image: image,
+                    sender_id: id,
+                    sender_name: username,
+                    sender_pic: avatarToStore,
+                    sender_tag: tag,
+                    timestamp: timestamp.toString()
+                  }
+                ]
+              }
+            ]
           }
-        }
+        },
+        { upsert: true }
       );
     } else {
       await Chat.updateOne(
-        { 'channels.channel_id': channel_id },
+        { 'channels.channel_id': channel_id, server_id },
         {
           $push: {
             'channels.$.chat_details': {
-              image: image, 
+              image: image,
               sender_id: id,
               sender_name: username,
-              sender_pic: profile_pic,
+              sender_pic: avatarToStore,
               sender_tag: tag,
-              timestamp
+              timestamp: timestamp.toString()
             }
           }
         }
       );
     }
-    return res.status(200).json({ status: 200, message: 'Image message stored successfully' });
+
+    return res
+      .status(200)
+      .json({ status: 200, message: 'Image message stored successfully' });
   } catch (err) {
     console.error('Error storing image message:', err);
-    return res.status(500).json({ status: 500, message: 'Server error while storing image message' });
+    return res.status(500).json({
+      status: 500,
+      message: 'Server error while storing image message'
+    });
   }
 };
-
 
 exports.getMessages = async (req, res) => {
   const { server_id, channel_id } = req.body;
@@ -120,7 +168,7 @@ exports.getMessages = async (req, res) => {
     ]);
 
     if (!data || data.length === 0 || !data[0].channels || data[0].channels.length === 0) {
-      return res.status(200).json({ status: 200, chats: [] }); // Return 200 with empty chats for consistency
+      return res.status(200).json({ status: 200, chats: [] }); 
     }
     const chatDetails = data[0].channels[0].chat_details.map(chat => ({
         ...chat,
@@ -159,7 +207,7 @@ exports.delete_message = async (req, res) => {
       }
     );
 
-    if (!result) { // This means the channel itself wasn't found for this server
+    if (!result) { 
       console.log('❌ Delete failed - Channel not found or server document mismatch');
       return res.status(404).json({ status: 404, message: 'Channel not found' });
     }
